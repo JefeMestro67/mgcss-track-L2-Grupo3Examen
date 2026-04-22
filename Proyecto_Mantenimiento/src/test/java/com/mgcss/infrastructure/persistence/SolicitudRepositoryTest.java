@@ -15,7 +15,7 @@ import com.mgcss.domain.Estado;
 
 @DataJpaTest
 @Tag("integration")
-class SolicitudRepositoryIT {
+class SolicitudRepositoryTest {
 
     @Autowired
     private JpaSolicitudRepository repository;
