@@ -86,4 +86,23 @@ class SolicitudServiceTest {
         // REGLA DE ORO
         verify(mockRepoSolicitud, never()).save(any());
     }
+    
+    @Test
+    void debe_crear_y_guardar_una_solicitud_nueva() {
+        // ARRANGE
+        // Le decimos a Mockito: "Cuando alguien llame a save() con cualquier solicitud, devuelve esa misma solicitud"
+        when(mockRepoSolicitud.save(any(Solicitud.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // ACT
+        Solicitud creada = servicio.crearSolicitud();
+
+        // ASSERT
+        // 1. Verificamos que el servicio orquestó la llamada al repositorio
+        verify(mockRepoSolicitud).save(any(Solicitud.class));
+        
+        // 2. Verificamos que la lógica de negocio básica se aplicó correctamente
+        assertNotNull(creada, "La solicitud no debe ser nula");
+        assertEquals(Estado.ABIERTA, creada.getEstado(), "Una solicitud nueva debe nacer en estado ABIERTA");
+        assertNotNull(creada.getFechaCreacion(), "La solicitud debe tener una fecha de creación asignada");
+    }
 }
