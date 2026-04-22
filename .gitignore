@@ -25,3 +25,11 @@ replay_pid*
 
 .project
 bin/
+
+# Maven (FUNDAMENTAL)
+target/
+
+# Eclipse específico
+.settings/
+.classpath
+.factorypath
