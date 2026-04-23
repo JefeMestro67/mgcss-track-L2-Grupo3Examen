@@ -43,4 +43,12 @@ public class SolicitudService {
         // 3. Guardamos el cambio
         solicitudRepository.save(solicitud);
     }
+    
+    public Solicitud crearSolicitud() {
+        // Creamos una solicitud pura de dominio, sin ID (porque lo genera la BD) y en estado inicial ABIERTA
+        Solicitud nuevaSolicitud = new Solicitud(null, com.mgcss.domain.Estado.ABIERTA, java.time.LocalDateTime.now());
+        
+        // Delegamos en el repositorio (el puerto) para que la guarde
+        return solicitudRepository.save(nuevaSolicitud);
+    }
 }
