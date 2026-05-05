@@ -1,6 +1,7 @@
 package com.mgcss.services;
 
 import com.mgcss.domain.Cliente;
+import com.mgcss.domain.TipoCliente;
 import com.mgcss.infrastructure.ClienteRepository;
 import org.springframework.stereotype.Service;
 
@@ -51,8 +52,13 @@ public class ClienteService {
     }
 
     public Cliente crearCliente(String nombre, String email) {
-        // Creamos un cliente puro de dominio, sin ID (lo genera la BD) y activo por defecto
-        Cliente nuevoCliente = new Cliente(null, nombre, email, true, 0);
+        // Creamos el cliente utilizando el constructor vacío y los setters
+        Cliente nuevoCliente = new Cliente();
+        nuevoCliente.setNombre(nombre);
+        nuevoCliente.setEmail(email);
+        nuevoCliente.setTipoCliente(TipoCliente.STANDARD); // Asignamos un tipo por defecto
+        nuevoCliente.setActivo(true);
+        nuevoCliente.setSolicitudesAbiertas(0);
         
         // Delegamos en el repositorio (el puerto) para que lo guarde
         return clienteRepository.save(nuevoCliente);

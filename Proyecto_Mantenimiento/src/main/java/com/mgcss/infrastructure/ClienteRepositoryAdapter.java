@@ -4,8 +4,9 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 import com.mgcss.domain.Cliente;
-import com.mgcss.infrastructure.persistence.JpaClienteRepository;
+import com.mgcss.domain.TipoCliente;
 import com.mgcss.infrastructure.persistence.ClienteEntity;
+import com.mgcss.infrastructure.persistence.JpaClienteRepository;
 
 @Repository
 public class ClienteRepositoryAdapter implements ClienteRepository {
@@ -18,11 +19,12 @@ public class ClienteRepositoryAdapter implements ClienteRepository {
 
     @Override
     public Cliente save(Cliente cliente) {
-        // 1. Traduce de Dominio a Entidad
+        // 1. Traduce de Dominio a Entidad (incluyendo tipoCliente)
         ClienteEntity entity = new ClienteEntity(
             cliente.getId(), 
             cliente.getNombre(), 
             cliente.getEmail(), 
+            cliente.getTipoCliente(), 
             cliente.isActivo(), 
             cliente.getSolicitudesAbiertas()
         );
@@ -35,6 +37,7 @@ public class ClienteRepositoryAdapter implements ClienteRepository {
             guardado.getId(), 
             guardado.getNombre(), 
             guardado.getEmail(), 
+            guardado.getTipoCliente(), 
             guardado.isActivo(), 
             guardado.getSolicitudesAbiertas()
         );
@@ -50,6 +53,7 @@ public class ClienteRepositoryAdapter implements ClienteRepository {
             entity.getId(), 
             entity.getNombre(), 
             entity.getEmail(), 
+            entity.getTipoCliente(), 
             entity.isActivo(), 
             entity.getSolicitudesAbiertas()
         ));

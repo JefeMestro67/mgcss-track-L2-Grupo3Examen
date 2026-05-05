@@ -5,7 +5,6 @@ import com.mgcss.infrastructure.TecnicoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.util.Optional;
-import java.util.NoSuchElementException;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,8 +22,14 @@ class TecnicoServiceTest {
 
     @Test
     void debe_incrementar_carga_cuando_tecnico_es_valido() {
-        // ARRANGE: Técnico activo con carga 0 (usando constructor de sobrecarga si lo añadiste)
-        Tecnico tecnico = new Tecnico(1L, "Carlos", true, 0);
+        // ARRANGE
+        Tecnico tecnico = new Tecnico();
+        tecnico.setId(1L);
+        tecnico.setNombre("Carlos");
+        tecnico.setEspecialidad("Soporte");
+        tecnico.setActivo(true);
+        tecnico.setCargaTrabajo(0);
+
         when(mockRepoTecnico.findById(1L)).thenReturn(Optional.of(tecnico));
 
         // ACT
@@ -37,8 +42,14 @@ class TecnicoServiceTest {
 
     @Test
     void no_debe_desactivar_tecnico_si_tiene_carga_pendiente() {
-        // ARRANGE: Técnico con carga 2 (Regla 1)
-        Tecnico tecnicoConCarga = new Tecnico(1L, "Ana", true, 2);
+        // ARRANGE
+        Tecnico tecnicoConCarga = new Tecnico();
+        tecnicoConCarga.setId(1L);
+        tecnicoConCarga.setNombre("Ana");
+        tecnicoConCarga.setEspecialidad("Soporte");
+        tecnicoConCarga.setActivo(true);
+        tecnicoConCarga.setCargaTrabajo(2);
+
         when(mockRepoTecnico.findById(1L)).thenReturn(Optional.of(tecnicoConCarga));
 
         // ACT & ASSERT
@@ -52,7 +63,13 @@ class TecnicoServiceTest {
     @Test
     void debe_desactivar_tecnico_si_no_tiene_carga() {
         // ARRANGE
-        Tecnico tecnicoLibre = new Tecnico(1L, "Ana", true, 0);
+        Tecnico tecnicoLibre = new Tecnico();
+        tecnicoLibre.setId(1L);
+        tecnicoLibre.setNombre("Ana");
+        tecnicoLibre.setEspecialidad("Soporte");
+        tecnicoLibre.setActivo(true);
+        tecnicoLibre.setCargaTrabajo(0);
+
         when(mockRepoTecnico.findById(1L)).thenReturn(Optional.of(tecnicoLibre));
 
         // ACT
@@ -68,7 +85,7 @@ class TecnicoServiceTest {
         // ARRANGE
         when(mockRepoTecnico.findById(99L)).thenReturn(Optional.empty());
 
-        // ACT & ASSERT: Cambiado de NoSuchElementException a IllegalArgumentException
+        // ACT & ASSERT
         assertThrows(IllegalArgumentException.class, () -> {
             servicio.asignarNuevaTarea(99L);
         });
@@ -79,8 +96,14 @@ class TecnicoServiceTest {
 
     @Test
     void no_debe_permitir_mas_de_cinco_tareas() {
-        // ARRANGE: Técnico al límite (Regla 2)
-        Tecnico tecnicoSaturado = new Tecnico(1L, "Luis", true, 5);
+        // ARRANGE
+        Tecnico tecnicoSaturado = new Tecnico();
+        tecnicoSaturado.setId(1L);
+        tecnicoSaturado.setNombre("Luis");
+        tecnicoSaturado.setEspecialidad("Soporte");
+        tecnicoSaturado.setActivo(true);
+        tecnicoSaturado.setCargaTrabajo(5);
+
         when(mockRepoTecnico.findById(1L)).thenReturn(Optional.of(tecnicoSaturado));
 
         // ACT & ASSERT

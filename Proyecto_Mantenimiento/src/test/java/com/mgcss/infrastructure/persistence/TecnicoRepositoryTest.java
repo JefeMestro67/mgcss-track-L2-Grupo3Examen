@@ -22,8 +22,13 @@ class TecnicoRepositoryTest {
 
     @Test
     void debe_guardar_y_recuperar_un_tecnico_en_h2() {
-        // 1. ARRANGE: Creamos la entidad de infraestructura
-        TecnicoEntity entity = new TecnicoEntity(null, "Carlos", true, 0);
+        // 1. ARRANGE: Creamos la entidad de infraestructura con el constructor vacío
+        TecnicoEntity entity = new TecnicoEntity();
+        entity.setId(null);
+        entity.setNombre("Carlos");
+        entity.setEspecialidad("Redes"); // Especialidad requerida por la entidad
+        entity.setActivo(true);
+        entity.setCargaTrabajo(0);
 
         // 2. ACT: Guardamos directamente con el repositorio JPA
         TecnicoEntity guardado = jpaRepository.save(entity);
@@ -38,11 +43,15 @@ class TecnicoRepositoryTest {
 
     @Test
     void debe_funcionar_el_ciclo_completo_con_el_adaptador_de_tecnico() {
-        // 1. ARRANGE: Instanciamos el adaptador manual (como pide la guía)
+        // 1. ARRANGE: Instanciamos el adaptador manual
         TecnicoRepositoryAdapter adapter = new TecnicoRepositoryAdapter(jpaRepository);
         
-        // Objeto de DOMINIO (con el constructor de 4 parámetros que creamos)
-        Tecnico tecnicoDominio = new Tecnico(null, "Ana", true, 3);
+        // Objeto de DOMINIO usando el constructor por defecto y setters
+        Tecnico tecnicoDominio = new Tecnico();
+        tecnicoDominio.setId(null);
+        tecnicoDominio.setNombre("Ana");
+        tecnicoDominio.setActivo(true);
+        tecnicoDominio.setCargaTrabajo(3);
 
         // 2. ACT: Guardar y Recuperar a través del Adaptador
         Tecnico guardado = adapter.save(tecnicoDominio);

@@ -4,6 +4,7 @@ import com.mgcss.domain.Tecnico;
 import com.mgcss.infrastructure.TecnicoRepository;
 import org.springframework.stereotype.Service;
 
+@Service
 public class TecnicoService {
 
     private final TecnicoRepository tecnicoRepository;

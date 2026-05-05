@@ -4,7 +4,9 @@ import com.mgcss.domain.Solicitud;
 import com.mgcss.domain.Tecnico;
 import com.mgcss.infrastructure.SolicitudRepository;
 import com.mgcss.infrastructure.TecnicoRepository;
+import org.springframework.stereotype.Service;
 
+@Service
 public class SolicitudService {
     
     private final SolicitudRepository solicitudRepository;
@@ -17,7 +19,6 @@ public class SolicitudService {
     }
 
     public void asignarTecnico(Long solicitudId, Long tecnicoId) {
-        
         // 1. Protegemos la búsqueda: si el Optional está vacío, lanzamos nuestra excepción
         Solicitud solicitud = solicitudRepository.findById(solicitudId)
                 .orElseThrow(() -> new IllegalArgumentException("La solicitud no existe"));
@@ -45,8 +46,10 @@ public class SolicitudService {
     }
     
     public Solicitud crearSolicitud() {
-        // Creamos una solicitud pura de dominio, sin ID (porque lo genera la BD) y en estado inicial ABIERTA
-        Solicitud nuevaSolicitud = new Solicitud(null, com.mgcss.domain.Estado.ABIERTA, java.time.LocalDateTime.now());
+        // Creamos una solicitud pura de dominio usando el constructor vacío y los setters
+        Solicitud nuevaSolicitud = new Solicitud();
+        nuevaSolicitud.setEstado(com.mgcss.domain.Estado.ABIERTA);
+        nuevaSolicitud.setFechaCreacion(java.time.LocalDateTime.now());
         
         // Delegamos en el repositorio (el puerto) para que la guarde
         return solicitudRepository.save(nuevaSolicitud);

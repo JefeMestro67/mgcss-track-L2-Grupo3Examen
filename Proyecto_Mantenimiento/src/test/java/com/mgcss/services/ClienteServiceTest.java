@@ -1,6 +1,7 @@
 package com.mgcss.services;
 
 import com.mgcss.domain.Cliente;
+import com.mgcss.domain.TipoCliente;
 import com.mgcss.infrastructure.ClienteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,14 @@ class ClienteServiceTest {
     @Test
     void debe_crear_solicitud_para_cliente() {
         // ARRANGE
-        Cliente cliente = new Cliente(1L, "Juan Pérez", "juan.perez@example.com", true, 1);
+        Cliente cliente = new Cliente();
+        cliente.setId(1L);
+        cliente.setNombre("Juan Pérez");
+        cliente.setEmail("juan.perez@example.com");
+        cliente.setTipoCliente(TipoCliente.STANDARD);
+        cliente.setActivo(true);
+        cliente.setSolicitudesAbiertas(1);
+        
         when(mockRepoCliente.findById(1L)).thenReturn(Optional.of(cliente));
 
         // ACT
@@ -51,7 +59,14 @@ class ClienteServiceTest {
     @Test
     void debe_desactivar_cliente_si_no_tiene_solicitudes_abiertas() {
         // ARRANGE
-        Cliente cliente = new Cliente(1L, "Juan Pérez", "juan.perez@example.com", true, 0);
+        Cliente cliente = new Cliente();
+        cliente.setId(1L);
+        cliente.setNombre("Juan Pérez");
+        cliente.setEmail("juan.perez@example.com");
+        cliente.setTipoCliente(TipoCliente.STANDARD);
+        cliente.setActivo(true);
+        cliente.setSolicitudesAbiertas(0);
+        
         when(mockRepoCliente.findById(1L)).thenReturn(Optional.of(cliente));
 
         // ACT
@@ -65,7 +80,14 @@ class ClienteServiceTest {
     @Test
     void no_debe_desactivar_cliente_si_tiene_solicitudes_abiertas() {
         // ARRANGE
-        Cliente cliente = new Cliente(1L, "Juan Pérez", "juan.perez@example.com", true, 1);
+        Cliente cliente = new Cliente();
+        cliente.setId(1L);
+        cliente.setNombre("Juan Pérez");
+        cliente.setEmail("juan.perez@example.com");
+        cliente.setTipoCliente(TipoCliente.STANDARD);
+        cliente.setActivo(true);
+        cliente.setSolicitudesAbiertas(1);
+        
         when(mockRepoCliente.findById(1L)).thenReturn(Optional.of(cliente));
 
         // ACT & ASSERT
@@ -80,7 +102,14 @@ class ClienteServiceTest {
     @Test
     void debe_finalizar_solicitud_para_cliente() {
         // ARRANGE
-        Cliente cliente = new Cliente(1L, "Juan Pérez", "juan.perez@example.com", true, 2);
+        Cliente cliente = new Cliente();
+        cliente.setId(1L);
+        cliente.setNombre("Juan Pérez");
+        cliente.setEmail("juan.perez@example.com");
+        cliente.setTipoCliente(TipoCliente.STANDARD);
+        cliente.setActivo(true);
+        cliente.setSolicitudesAbiertas(2);
+        
         when(mockRepoCliente.findById(1L)).thenReturn(Optional.of(cliente));
 
         // ACT

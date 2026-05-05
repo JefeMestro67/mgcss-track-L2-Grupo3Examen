@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import com.mgcss.domain.Cliente;
+import com.mgcss.domain.TipoCliente;
 import com.mgcss.infrastructure.ClienteRepositoryAdapter;
 
 @DataJpaTest
@@ -22,8 +23,14 @@ class ClienteRepositoryTest {
 
     @Test
     void debe_guardar_y_recuperar_un_cliente_en_h2() {
-        // 1. ARRANGE: Creamos la entidad de infraestructura
-        ClienteEntity entity = new ClienteEntity(null, "Juan Pérez", "juan.perez@example.com", true, 0);
+        // 1. ARRANGE: Creamos la entidad de infraestructura usando el constructor vacío y setters
+        ClienteEntity entity = new ClienteEntity();
+        entity.setId(null);
+        entity.setNombre("Juan Pérez");
+        entity.setEmail("juan.perez@example.com");
+        entity.setTipoCliente(TipoCliente.STANDARD);
+        entity.setActivo(true);
+        entity.setSolicitudesAbiertas(0);
 
         // 2. ACT: Guardamos directamente con el repositorio JPA
         ClienteEntity guardado = jpaRepository.save(entity);
@@ -39,11 +46,17 @@ class ClienteRepositoryTest {
 
     @Test
     void debe_funcionar_el_ciclo_completo_con_el_adaptador_de_cliente() {
-        // 1. ARRANGE: Instanciamos el adaptador manual (como pide la guía)
+        // 1. ARRANGE: Instanciamos el adaptador manual
         ClienteRepositoryAdapter adapter = new ClienteRepositoryAdapter(jpaRepository);
         
         // Objeto de DOMINIO
-        Cliente clienteDominio = new Cliente(null, "Ana Gómez", "ana.gomez@example.com", true, 2);
+        Cliente clienteDominio = new Cliente();
+        clienteDominio.setId(null);
+        clienteDominio.setNombre("Ana Gómez");
+        clienteDominio.setEmail("ana.gomez@example.com");
+        clienteDominio.setTipoCliente(TipoCliente.STANDARD);
+        clienteDominio.setActivo(true);
+        clienteDominio.setSolicitudesAbiertas(2);
 
         // 2. ACT: Guardar y Recuperar a través del Adaptador
         Cliente guardado = adapter.save(clienteDominio);

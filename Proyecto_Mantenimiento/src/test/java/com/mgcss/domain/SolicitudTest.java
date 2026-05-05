@@ -11,13 +11,19 @@ class SolicitudTest {
     
     @Test
     void no_debe_permitir_cerrar_solicitud_si_no_esta_en_proceso() {
-        Solicitud solicitud = new Solicitud(1L, Estado.ABIERTA, null); 
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId(1L);
+        solicitud.setEstado(Estado.ABIERTA);
+        
         assertThrows(IllegalStateException.class, solicitud::cerrar);
     }
     
     @Test
     void debe_poder_cerrar_solicitud_si_esta_en_proceso() {
-        Solicitud solicitud = new Solicitud(1L, Estado.EN_PROCESO, null); 
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId(1L);
+        solicitud.setEstado(Estado.EN_PROCESO);
+        
         solicitud.cerrar();
         assertEquals(Estado.CERRADA, solicitud.getEstado()); // Camino feliz
     }
@@ -26,8 +32,13 @@ class SolicitudTest {
     
     @Test
     void no_debe_permitir_asignar_tecnico_inactivo() {
-        Solicitud solicitud = new Solicitud(1L, Estado.ABIERTA, null); 
-        Tecnico tecnicoInactivo = new Tecnico(false);
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId(1L);
+        solicitud.setEstado(Estado.ABIERTA);
+        
+        Tecnico tecnicoInactivo = new Tecnico();
+        tecnicoInactivo.setActivo(false);
+        
         assertThrows(IllegalStateException.class, () -> {
             solicitud.asignarTecnico(tecnicoInactivo);
         });
@@ -36,8 +47,12 @@ class SolicitudTest {
     @Test
     void debe_permitir_asignar_tecnico_activo() {
         // 1. ARRANGE
-        Solicitud solicitud = new Solicitud(1L, Estado.ABIERTA, null); 
-        Tecnico tecnicoActivo = new Tecnico(true);
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId(1L);
+        solicitud.setEstado(Estado.ABIERTA);
+        
+        Tecnico tecnicoActivo = new Tecnico();
+        tecnicoActivo.setActivo(true);
         
         // 2. ACT
         solicitud.asignarTecnico(tecnicoActivo); 
@@ -50,8 +65,13 @@ class SolicitudTest {
     
     @Test
     void no_debe_permitir_asignar_tecnico_a_solicitud_cerrada() {
-        Solicitud solicitud = new Solicitud(1L, Estado.CERRADA, null); 
-        Tecnico tecnico = new Tecnico(true);
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId(1L);
+        solicitud.setEstado(Estado.CERRADA);
+        
+        Tecnico tecnico = new Tecnico();
+        tecnico.setActivo(true);
+        
         assertThrows(IllegalStateException.class, () -> {
             solicitud.asignarTecnico(tecnico);
         });
