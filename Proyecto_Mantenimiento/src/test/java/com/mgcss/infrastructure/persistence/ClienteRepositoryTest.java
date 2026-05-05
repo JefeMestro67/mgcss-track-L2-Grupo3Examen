@@ -23,7 +23,7 @@ class ClienteRepositoryTest {
 
     @Test
     void debe_guardar_y_recuperar_un_cliente_en_h2() {
-        // 1. ARRANGE: Creamos la entidad de infraestructura usando el constructor vacío y setters
+        // 1. ARRANGE
         ClienteEntity entity = new ClienteEntity();
         entity.setId(null);
         entity.setNombre("Juan Pérez");
@@ -32,10 +32,10 @@ class ClienteRepositoryTest {
         entity.setActivo(true);
         entity.setSolicitudesAbiertas(0);
 
-        // 2. ACT: Guardamos directamente con el repositorio JPA
+        // 2. ACT
         ClienteEntity guardado = jpaRepository.save(entity);
 
-        // 3. ASSERT: Comprobamos la persistencia real
+        // 3. ASSERT
         Optional<ClienteEntity> recuperado = jpaRepository.findById(guardado.getId());
         
         assertTrue(recuperado.isPresent());
@@ -46,10 +46,9 @@ class ClienteRepositoryTest {
 
     @Test
     void debe_funcionar_el_ciclo_completo_con_el_adaptador_de_cliente() {
-        // 1. ARRANGE: Instanciamos el adaptador manual
+        // 1. ARRANGE
         ClienteRepositoryAdapter adapter = new ClienteRepositoryAdapter(jpaRepository);
         
-        // Objeto de DOMINIO
         Cliente clienteDominio = new Cliente();
         clienteDominio.setId(null);
         clienteDominio.setNombre("Ana Gómez");
@@ -58,15 +57,42 @@ class ClienteRepositoryTest {
         clienteDominio.setActivo(true);
         clienteDominio.setSolicitudesAbiertas(2);
 
-        // 2. ACT: Guardar y Recuperar a través del Adaptador
+        // 2. ACT
         Cliente guardado = adapter.save(clienteDominio);
         Optional<Cliente> recuperado = adapter.findById(guardado.getId());
 
-        // 3. ASSERT: Verificamos que el mapeo Dominio -> Entity -> Dominio es correcto
+        // 3. ASSERT
         assertTrue(recuperado.isPresent());
         assertEquals("Ana Gómez", recuperado.get().getNombre());
         assertEquals("ana.gomez@example.com", recuperado.get().getEmail());
         assertEquals(2, recuperado.get().getSolicitudesAbiertas());
         assertTrue(recuperado.get().isActivo());
+    }
+
+    @Test
+    void debe_retornar_vacio_si_el_cliente_no_existe() {
+        ClienteRepositoryAdapter adapter = new ClienteRepositoryAdapter(jpaRepository);
+        Optional<Cliente> recuperado = adapter.findById(999L);
+        
+        assertTrue(recuperado.isEmpty());
+    }
+
+    @Test
+    void debe_actualizar_un_cliente() {
+        ClienteRepositoryAdapter adapter = new ClienteRepositoryAdapter(jpaRepository);
+        
+        Cliente cliente = new Cliente();
+        cliente.setNombre("Cliente Inicial");
+        cliente.setEmail("inicial@example.com");
+        cliente.setTipoCliente(TipoCliente.STANDARD);
+        cliente.setActivo(true);
+        cliente.setSolicitudesAbiertas(0);
+        
+        Cliente guardado = adapter.save(cliente);
+        
+        guardado.setNombre("Cliente Actualizado");
+        Cliente actualizado = adapter.save(guardado);
+        
+        assertEquals("Cliente Actualizado", actualizado.getNombre());
     }
 }

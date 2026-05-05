@@ -1,6 +1,7 @@
 package com.mgcss.infrastructure.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
@@ -29,7 +30,6 @@ class SolicitudRepositoryTest {
 
     @Test
     void debe_guardar_y_recuperar_una_solicitud_real() {
-        // ARRANGE: Primero creamos y guardamos un cliente para cumplir la restricción not-null
         ClienteEntity clienteEntity = new ClienteEntity();
         clienteEntity.setNombre("Juan Pérez");
         clienteEntity.setEmail("juan.perez@example.com");
@@ -39,7 +39,6 @@ class SolicitudRepositoryTest {
         
         ClienteEntity clienteGuardado = clienteRepository.save(clienteEntity);
 
-        // Creamos la solicitud y le asociamos el cliente persistido
         SolicitudEntity entity = new SolicitudEntity();
         entity.setId(null);
         entity.setCliente(clienteGuardado);
@@ -47,10 +46,8 @@ class SolicitudRepositoryTest {
         entity.setDescripcion("Descripción de prueba");
         entity.setFechaCreacion(LocalDateTime.now());
 
-        // ACT: Guardamos en H2
         SolicitudEntity guardada = repository.save(entity);
 
-        // ASSERT: Verificamos que el cliente exista en la solicitud recuperada
         Optional<SolicitudEntity> recuperada = repository.findById(guardada.getId());
         assertTrue(recuperada.isPresent());
         assertEquals(Estado.ABIERTA, recuperada.get().getEstado());
@@ -61,7 +58,6 @@ class SolicitudRepositoryTest {
     void debe_guardar_y_recuperar_usando_el_adaptador_completo() {
         SolicitudRepositoryAdapter adapter = new SolicitudRepositoryAdapter(repository, clienteRepository);
         
-        // ARRANGE: Preparamos un cliente persistido para el adaptador
         ClienteEntity clienteEntity = new ClienteEntity();
         clienteEntity.setNombre("Ana Gómez");
         clienteEntity.setEmail("ana.gomez@example.com");
@@ -71,13 +67,11 @@ class SolicitudRepositoryTest {
         
         ClienteEntity clienteGuardado = clienteRepository.save(clienteEntity);
         
-        // Creamos la solicitud de Dominio
         Solicitud solicitudDominio = new Solicitud();
         solicitudDominio.setId(null);
         solicitudDominio.setEstado(Estado.ABIERTA);
         solicitudDominio.setDescripcion("Descripción desde el adaptador");
         
-        // Asociamos el cliente de dominio
         Cliente clienteDominio = new Cliente();
         clienteDominio.setId(clienteGuardado.getId());
         clienteDominio.setNombre(clienteGuardado.getNombre());
@@ -87,14 +81,29 @@ class SolicitudRepositoryTest {
         clienteDominio.setSolicitudesAbiertas(clienteGuardado.getSolicitudesAbiertas());
         solicitudDominio.setCliente(clienteDominio);
 
-        // ACT: Guardamos la solicitud a través del adaptador
         Solicitud guardada = adapter.save(solicitudDominio);
         
-        // ASSERT
         Optional<Solicitud> recuperada = adapter.findById(guardada.getId());
         assertTrue(recuperada.isPresent());
         assertEquals(Estado.ABIERTA, recuperada.get().getEstado());
         assertEquals(guardada.getId(), recuperada.get().getId());
         assertEquals(clienteGuardado.getId(), recuperada.get().getCliente().getId());
+    }
+
+    @Test
+    void debe_retornar_vacio_si_la_solicitud_no_existe() {
+        SolicitudRepositoryAdapter adapter = new SolicitudRepositoryAdapter(repository, clienteRepository);
+        Optional<Solicitud> recuperada = adapter.findById(999L);
+        
+        assertTrue(recuperada.isEmpty());
+    }
+
+    @Test
+    void debe_lanzar_excepcion_al_guardar_sin_cliente() {
+        SolicitudRepositoryAdapter adapter = new SolicitudRepositoryAdapter(repository, clienteRepository);
+        Solicitud solicitud = new Solicitud();
+        solicitud.setEstado(Estado.ABIERTA);
+        
+        assertThrows(IllegalArgumentException.class, () -> adapter.save(solicitud));
     }
 }
