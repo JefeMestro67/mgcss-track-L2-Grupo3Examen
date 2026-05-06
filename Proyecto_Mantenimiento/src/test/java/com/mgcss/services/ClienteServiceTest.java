@@ -21,41 +21,6 @@ class ClienteServiceTest {
         servicio = new ClienteService(mockRepoCliente);
     }
 
-    // --- PRUEBAS DE crearSolicitud ---
-
-    @Test
-    void debe_crear_solicitud_para_cliente() {
-        // ARRANGE
-        Cliente cliente = new Cliente();
-        cliente.setId(1L);
-        cliente.setNombre("Juan Pérez");
-        cliente.setEmail("juan.perez@example.com");
-        cliente.setTipoCliente(TipoCliente.STANDARD);
-        cliente.setActivo(true);
-        cliente.setSolicitudesAbiertas(1);
-        
-        when(mockRepoCliente.findById(1L)).thenReturn(Optional.of(cliente));
-
-        // ACT
-        servicio.crearSolicitud(1L);
-
-        // ASSERT
-        verify(mockRepoCliente).save(cliente);
-        assertEquals(2, cliente.getSolicitudesAbiertas());
-    }
-
-    @Test
-    void no_debe_permitir_crear_solicitud_si_cliente_no_existe() {
-        // ARRANGE
-        when(mockRepoCliente.findById(1L)).thenReturn(Optional.empty());
-
-        // ACT & ASSERT
-        assertThrows(IllegalArgumentException.class, () -> {
-            servicio.crearSolicitud(1L);
-        });
-
-        verify(mockRepoCliente, never()).save(any());
-    }
 
     // --- PRUEBAS DE desactivarCliente ---
 

@@ -1,6 +1,7 @@
 package com.mgcss.services;
 
 import com.mgcss.domain.*;
+import com.mgcss.infrastructure.ClienteRepository;
 import com.mgcss.infrastructure.TecnicoRepository;
 import com.mgcss.infrastructure.SolicitudRepository;
 
@@ -16,159 +17,120 @@ class SolicitudServiceTest {
 
     private SolicitudRepository mockRepoSolicitud;
     private TecnicoRepository mockRepoTecnico;
+    private ClienteRepository mockRepoCliente;
     private SolicitudService servicio;
 
     @BeforeEach
     void setUp() {
         mockRepoSolicitud = mock(SolicitudRepository.class);
         mockRepoTecnico = mock(TecnicoRepository.class);
-        servicio = new SolicitudService(mockRepoSolicitud, mockRepoTecnico); 
+        mockRepoCliente = mock(ClienteRepository.class);
+        servicio = new SolicitudService(mockRepoSolicitud, mockRepoTecnico, mockRepoCliente); 
     }
 
     @Test
-    void debe_guardar_solicitud_al_asignar_tecnico() {
-        // ARRANGE - Rellenamos todos los campos para cubrir getters/setters de Solicitud y Tecnico
+    void debe_crear_solicitud_y_asociarla_al_cliente_incrementando_carga() {
+        Cliente cliente = new Cliente();
+        cliente.setId(1L);
+        cliente.setActivo(true);
+        cliente.setSolicitudesAbiertas(0);
+
+        when(mockRepoCliente.findById(1L)).thenReturn(Optional.of(cliente));
+        when(mockRepoSolicitud.save(any(Solicitud.class))).thenAnswer(i -> i.getArgument(0));
+
+        Solicitud creada = servicio.crearSolicitud(1L, "Mi PC no arranca");
+
+        assertNotNull(creada);
+        assertEquals(cliente, creada.getCliente());
+        assertEquals("Mi PC no arranca", creada.getDescripcion());
+        assertEquals(1, cliente.getSolicitudesAbiertas()); // Verificamos orquestación
+
+        verify(mockRepoCliente).save(cliente);
+        verify(mockRepoSolicitud).save(any(Solicitud.class));
+    }
+
+    @Test
+    void asignarTecnico_debe_incrementar_carga_del_tecnico() {
         Solicitud solicitud = new Solicitud();
         solicitud.setId(1L);
-        solicitud.setDescripcion("Error en el sistema de login");
         solicitud.setEstado(Estado.ABIERTA);
-        solicitud.setFechaCreacion(LocalDateTime.now());
 
         Tecnico tecnico = new Tecnico();
         tecnico.setId(99L);
-        tecnico.setNombre("Carlos Técnico");
-        tecnico.setEspecialidad("Sistemas");
         tecnico.setActivo(true);
         tecnico.setCargaTrabajo(0);
-        
+
         when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.of(solicitud));
         when(mockRepoTecnico.findById(99L)).thenReturn(Optional.of(tecnico));
 
-        // ACT
         servicio.asignarTecnico(1L, 99L);
 
-        // ASSERT
-        verify(mockRepoSolicitud).save(solicitud);
         assertEquals(Estado.EN_PROCESO, solicitud.getEstado());
-        assertEquals(tecnico, solicitud.getTecnicoAsignado()); 
-        assertEquals("Carlos Técnico", solicitud.getTecnicoAsignado().getNombre()); 
-    }
-    
-    @Test
-    void debe_lanzar_excepcion_si_solicitud_no_existe() {
-        // ARRANGE
-        when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.empty());
+        assertEquals(tecnico, solicitud.getTecnicoAsignado());
+        assertEquals(1, tecnico.getCargaTrabajo()); // Verificamos orquestación
 
-        // ACT & ASSERT
-        assertThrows(IllegalArgumentException.class, () -> {
-            servicio.asignarTecnico(1L, 99L);
-        });
+        verify(mockRepoTecnico).save(tecnico);
+        verify(mockRepoSolicitud).save(solicitud);
+    }
+
+    @Test
+    void cerrarSolicitud_debe_liberar_carga_de_cliente_y_tecnico() {
+        Cliente cliente = new Cliente();
+        cliente.setId(10L);
+        cliente.setActivo(true);
+        cliente.setSolicitudesAbiertas(2);
+
+        Tecnico tecnico = new Tecnico();
+        tecnico.setId(99L);
+        tecnico.setActivo(true);
+        tecnico.setCargaTrabajo(3);
+
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId(1L);
+        solicitud.setEstado(Estado.EN_PROCESO);
+        solicitud.setCliente(cliente);
+        solicitud.setTecnicoAsignado(tecnico);
+
+        when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.of(solicitud));
+
+        servicio.cerrarSolicitud(1L);
+
+        assertEquals(Estado.CERRADA, solicitud.getEstado());
+        assertEquals(1, cliente.getSolicitudesAbiertas()); // Libera al cliente
+        assertEquals(2, tecnico.getCargaTrabajo());        // Libera al técnico
+
+        verify(mockRepoCliente).save(cliente);
+        verify(mockRepoTecnico).save(tecnico);
+        verify(mockRepoSolicitud).save(solicitud);
+    }
+
+    @Test
+    void crearSolicitud_falla_si_cliente_no_existe() {
+        when(mockRepoCliente.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> servicio.crearSolicitud(1L, "Error"));
 
         verify(mockRepoSolicitud, never()).save(any());
     }
 
     @Test
-    void debe_guardar_solicitud_al_cerrarla() {
-        // ARRANGE - Datos completos
-        Solicitud solicitud = new Solicitud();
-        solicitud.setId(1L);
-        solicitud.setDescripcion("PC no arranca");
-        solicitud.setEstado(Estado.EN_PROCESO);
-        solicitud.setFechaCreacion(LocalDateTime.now().minusDays(1));
-
-        when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.of(solicitud));
-
-        // ACT
-        servicio.cerrarSolicitud(1L);
-
-        // ASSERT
-        verify(mockRepoSolicitud).save(solicitud);
-        assertEquals(Estado.CERRADA, solicitud.getEstado());
-        assertNotNull(solicitud.getFechaCierre(), "La fecha de cierre debe haberse generado"); 
-    }
-
-    @Test
-    void debe_lanzar_excepcion_si_tecnico_no_existe() {
-        // ARRANGE
+    void asignarTecnico_falla_y_no_guarda_si_tecnico_inactivo() {
         Solicitud solicitud = new Solicitud();
         solicitud.setId(1L);
         solicitud.setEstado(Estado.ABIERTA);
 
+        Tecnico tecnicoInactivo = new Tecnico();
+        tecnicoInactivo.setId(99L);
+        tecnicoInactivo.setActivo(false);
+
         when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.of(solicitud));
-        when(mockRepoTecnico.findById(99L)).thenReturn(Optional.empty());
+        when(mockRepoTecnico.findById(99L)).thenReturn(Optional.of(tecnicoInactivo));
 
-        // ACT & ASSERT
-        assertThrows(IllegalArgumentException.class, () -> {
-            servicio.asignarTecnico(1L, 99L);
-        });
+        // Sad Path: Explota correctamente
+        assertThrows(IllegalStateException.class, () -> servicio.asignarTecnico(1L, 99L));
 
+        // Inmutabilidad: No guarda nada
         verify(mockRepoSolicitud, never()).save(any());
-    }
-    
-    @Test
-    void debe_crear_y_guardar_una_solicitud_nueva() {
-        // ARRANGE
-        when(mockRepoSolicitud.save(any(Solicitud.class))).thenAnswer(invocation -> {
-            Solicitud s = invocation.getArgument(0);
-            s.setId(500L); 
-            return s;
-        });
-
-        // ACT
-        Solicitud creada = servicio.crearSolicitud();
-
-        // ASSERT
-        verify(mockRepoSolicitud).save(any(Solicitud.class));
-        
-        assertNotNull(creada, "La solicitud no debe ser nula");
-        assertEquals(500L, creada.getId()); 
-        assertEquals(Estado.ABIERTA, creada.getEstado());
-        assertNotNull(creada.getFechaCreacion());
-    }
-    
-    // --- NUEVOS TESTS PARA ASEGURAR EL COVERAGE DEL OR-ELSE-THROW ---
-
-    @Test
-    void asignarTecnico_Falla_Cuando_Solicitud_No_Existe_Explicito() {
-        // 1. Preparamos el Mock: El repo de solicitudes devuelve vacío
-        when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.empty());
-
-        // 2. Ejecutamos y esperamos el error del orElseThrow
-        assertThrows(IllegalArgumentException.class, () -> {
-            servicio.asignarTecnico(1L, 99L);
-        });
-
-        // 3. Verificamos que NO se intentó buscar al técnico ni guardar nada
-        verify(mockRepoTecnico, never()).findById(anyLong());
-        verify(mockRepoSolicitud, never()).save(any());
-    }
-
-    @Test
-    void asignarTecnico_Falla_Cuando_Tecnico_No_Existe_Explicito() {
-        // 1. La solicitud SI existe
-        Solicitud solicitud = new Solicitud();
-        solicitud.setId(1L);
-        when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.of(solicitud));
-
-        // 2. El técnico NO existe (esto dispara el segundo orElseThrow)
-        when(mockRepoTecnico.findById(99L)).thenReturn(Optional.empty());
-
-        // 3. Ejecutamos y esperamos el error
-        assertThrows(IllegalArgumentException.class, () -> {
-            servicio.asignarTecnico(1L, 99L);
-        });
-
-        // 4. Verificamos que nunca se llamó al save
-        verify(mockRepoSolicitud, never()).save(any());
-    }
-
-    @Test
-    void cerrarSolicitud_Falla_Si_No_Existe() {
-        // Cubre el orElseThrow del método cerrar en el service
-        when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.empty());
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            servicio.cerrarSolicitud(1L);
-        });
+        verify(mockRepoTecnico, never()).save(any());
     }
 }

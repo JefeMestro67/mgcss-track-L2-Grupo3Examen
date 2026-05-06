@@ -15,18 +15,6 @@ public class ClienteService {
         this.clienteRepository = clienteRepository;
     }
 
-    public void crearSolicitud(Long clienteId) {
-        // 1. Protegemos la búsqueda: si el Optional está vacío, lanzamos nuestra excepción
-        Cliente cliente = clienteRepository.findById(clienteId)
-                .orElseThrow(() -> new IllegalArgumentException("El cliente no existe"));
-
-        // 2. El servicio llama al dominio
-        cliente.crearSolicitud();
-
-        // 3. Guardamos el estado final
-        clienteRepository.save(cliente);
-    }
-
     public void desactivarCliente(Long clienteId) {
         // 1. Recuperamos el cliente
         Cliente cliente = clienteRepository.findById(clienteId)

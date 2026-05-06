@@ -33,7 +33,8 @@ class SolicitudRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        adapter = new SolicitudRepositoryAdapter(repository, clienteRepository);
+        // Le añadimos el tecnicoRepository que ya tenías inyectado en la clase
+        adapter = new SolicitudRepositoryAdapter(repository, clienteRepository, tecnicoRepository);
     }
 
     @Test
