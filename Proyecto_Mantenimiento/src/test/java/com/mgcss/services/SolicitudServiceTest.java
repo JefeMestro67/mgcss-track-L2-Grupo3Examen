@@ -50,8 +50,8 @@ class SolicitudServiceTest {
         // ASSERT
         verify(mockRepoSolicitud).save(solicitud);
         assertEquals(Estado.EN_PROCESO, solicitud.getEstado());
-        assertEquals(tecnico, solicitud.getTecnicoAsignado()); // Cubre el getter de tecnicoAsignado
-        assertEquals("Carlos Técnico", solicitud.getTecnicoAsignado().getNombre()); // Cubre getter de nombre
+        assertEquals(tecnico, solicitud.getTecnicoAsignado()); 
+        assertEquals("Carlos Técnico", solicitud.getTecnicoAsignado().getNombre()); 
     }
     
     @Test
@@ -84,7 +84,7 @@ class SolicitudServiceTest {
         // ASSERT
         verify(mockRepoSolicitud).save(solicitud);
         assertEquals(Estado.CERRADA, solicitud.getEstado());
-        assertNotNull(solicitud.getFechaCierre(), "La fecha de cierre debe haberse generado"); // Cubre el setter/getter de fechaCierre
+        assertNotNull(solicitud.getFechaCierre(), "La fecha de cierre debe haberse generado"); 
     }
 
     @Test
@@ -107,10 +107,10 @@ class SolicitudServiceTest {
     
     @Test
     void debe_crear_y_guardar_una_solicitud_nueva() {
-        // ARRANGE - Usamos answer para que el mock devuelva la solicitud que recibe
+        // ARRANGE
         when(mockRepoSolicitud.save(any(Solicitud.class))).thenAnswer(invocation -> {
             Solicitud s = invocation.getArgument(0);
-            s.setId(500L); // Simulamos que la DB le da un ID
+            s.setId(500L); 
             return s;
         });
 
@@ -121,16 +121,19 @@ class SolicitudServiceTest {
         verify(mockRepoSolicitud).save(any(Solicitud.class));
         
         assertNotNull(creada, "La solicitud no debe ser nula");
-        assertEquals(500L, creada.getId()); // Cubre getId
+        assertEquals(500L, creada.getId()); 
         assertEquals(Estado.ABIERTA, creada.getEstado());
         assertNotNull(creada.getFechaCreacion());
     }
+    
+    // --- NUEVOS TESTS PARA ASEGURAR EL COVERAGE DEL OR-ELSE-THROW ---
+
     @Test
-    void asignarTecnico_Falla_Cuando_Solicitud_No_Existe() {
+    void asignarTecnico_Falla_Cuando_Solicitud_No_Existe_Explicito() {
         // 1. Preparamos el Mock: El repo de solicitudes devuelve vacío
         when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.empty());
 
-        // 2. Ejecutamos y esperamos el error
+        // 2. Ejecutamos y esperamos el error del orElseThrow
         assertThrows(IllegalArgumentException.class, () -> {
             servicio.asignarTecnico(1L, 99L);
         });
@@ -139,14 +142,15 @@ class SolicitudServiceTest {
         verify(mockRepoTecnico, never()).findById(anyLong());
         verify(mockRepoSolicitud, never()).save(any());
     }
+
     @Test
-    void asignarTecnico_Falla_Cuando_Tecnico_No_Existe() {
+    void asignarTecnico_Falla_Cuando_Tecnico_No_Existe_Explicito() {
         // 1. La solicitud SI existe
         Solicitud solicitud = new Solicitud();
         solicitud.setId(1L);
         when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.of(solicitud));
 
-        // 2. El técnico NO existe
+        // 2. El técnico NO existe (esto dispara el segundo orElseThrow)
         when(mockRepoTecnico.findById(99L)).thenReturn(Optional.empty());
 
         // 3. Ejecutamos y esperamos el error
@@ -154,8 +158,17 @@ class SolicitudServiceTest {
             servicio.asignarTecnico(1L, 99L);
         });
 
-        // 4. Verificamos que se intentó guardar nada
+        // 4. Verificamos que nunca se llamó al save
         verify(mockRepoSolicitud, never()).save(any());
     }
-    
+
+    @Test
+    void cerrarSolicitud_Falla_Si_No_Existe() {
+        // Cubre el orElseThrow del método cerrar en el service
+        when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            servicio.cerrarSolicitud(1L);
+        });
+    }
 }
