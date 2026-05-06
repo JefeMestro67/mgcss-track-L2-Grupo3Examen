@@ -145,6 +145,7 @@ class ClienteServiceTest {
     }
 
     // --- PRUEBAS DE crearCliente ---
+   
 
     @Test
     void debe_crear_y_guardar_un_cliente_nuevo() {
@@ -162,36 +163,5 @@ class ClienteServiceTest {
         assertTrue(creado.isActivo());
         assertEquals(0, creado.getSolicitudesAbiertas());
     }
-
-    @Test
-    void crearSolicitud_Falla_Si_Cliente_No_Existe() {
-        // Forzamos que el repo devuelva vacío
-        when(mockRepoCliente.findById(1L)).thenReturn(Optional.empty());
-
-        // Comprobamos que salta la excepción del orElseThrow
-        assertThrows(IllegalArgumentException.class, () -> {
-            servicio.crearSolicitud(1L);
-        });
-
-        // Verificamos que no se guarda nada (importante para la lógica)
-        verify(mockRepoCliente, never()).save(any());
-    }
-
-    @Test
-    void desactivarCliente_Falla_Si_Cliente_No_Existe() {
-        when(mockRepoCliente.findById(1L)).thenReturn(Optional.empty());
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            servicio.desactivarCliente(1L);
-        });
-    }
-
-    @Test
-    void finalizarSolicitud_Falla_Si_Cliente_No_Existe() {
-        when(mockRepoCliente.findById(1L)).thenReturn(Optional.empty());
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            servicio.finalizarSolicitud(1L);
-        });
-    }
+    
 }

@@ -4,7 +4,6 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 import com.mgcss.domain.Cliente;
-import com.mgcss.domain.TipoCliente;
 import com.mgcss.infrastructure.persistence.ClienteEntity;
 import com.mgcss.infrastructure.persistence.JpaClienteRepository;
 
