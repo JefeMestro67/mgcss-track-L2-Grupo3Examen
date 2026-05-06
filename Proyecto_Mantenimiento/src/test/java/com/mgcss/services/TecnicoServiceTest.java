@@ -134,4 +134,31 @@ class TecnicoServiceTest {
         
         verify(mockRepoTecnico, never()).save(any());
     }
+    @Test
+    void asignarNuevaTarea_Falla_Si_Tecnico_No_Existe() {
+        // Forzamos el Optional vacío
+        when(mockRepoTecnico.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            servicio.asignarNuevaTarea(1L);
+        });
+    }
+
+    @Test
+    void desactivarTecnico_Falla_Si_Tecnico_No_Existe() {
+        when(mockRepoTecnico.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            servicio.desactivarTecnico(1L);
+        });
+    }
+
+    @Test
+    void finalizarTarea_Falla_Si_Tecnico_No_Existe() {
+        when(mockRepoTecnico.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            servicio.finalizarTarea(1L);
+        });
+    }
 }

@@ -125,4 +125,37 @@ class SolicitudServiceTest {
         assertEquals(Estado.ABIERTA, creada.getEstado());
         assertNotNull(creada.getFechaCreacion());
     }
+    @Test
+    void asignarTecnico_Falla_Cuando_Solicitud_No_Existe() {
+        // 1. Preparamos el Mock: El repo de solicitudes devuelve vacío
+        when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.empty());
+
+        // 2. Ejecutamos y esperamos el error
+        assertThrows(IllegalArgumentException.class, () -> {
+            servicio.asignarTecnico(1L, 99L);
+        });
+
+        // 3. Verificamos que NO se intentó buscar al técnico ni guardar nada
+        verify(mockRepoTecnico, never()).findById(anyLong());
+        verify(mockRepoSolicitud, never()).save(any());
+    }
+    @Test
+    void asignarTecnico_Falla_Cuando_Tecnico_No_Existe() {
+        // 1. La solicitud SI existe
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId(1L);
+        when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.of(solicitud));
+
+        // 2. El técnico NO existe
+        when(mockRepoTecnico.findById(99L)).thenReturn(Optional.empty());
+
+        // 3. Ejecutamos y esperamos el error
+        assertThrows(IllegalArgumentException.class, () -> {
+            servicio.asignarTecnico(1L, 99L);
+        });
+
+        // 4. Verificamos que se intentó guardar nada
+        verify(mockRepoSolicitud, never()).save(any());
+    }
+    
 }
