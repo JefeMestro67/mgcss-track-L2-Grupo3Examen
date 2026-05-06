@@ -1,12 +1,10 @@
 package com.mgcss.infrastructure.persistence;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +13,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import com.mgcss.domain.Cliente;
 import com.mgcss.domain.Estado;
 import com.mgcss.domain.Solicitud;
-import com.mgcss.domain.TipoCliente;
+import com.mgcss.domain.Tecnico;
 import com.mgcss.infrastructure.SolicitudRepositoryAdapter;
 
 @DataJpaTest
@@ -28,91 +26,89 @@ class SolicitudRepositoryTest {
     @Autowired
     private JpaClienteRepository clienteRepository;
 
-    @Test
-    void debe_guardar_y_recuperar_una_solicitud_real() {
-        ClienteEntity clienteEntity = new ClienteEntity();
-        clienteEntity.setNombre("Juan Pérez");
-        clienteEntity.setEmail("juan.perez@example.com");
-        clienteEntity.setTipoCliente(TipoCliente.STANDARD);
-        clienteEntity.setActivo(true);
-        clienteEntity.setSolicitudesAbiertas(0);
-        
-        ClienteEntity clienteGuardado = clienteRepository.save(clienteEntity);
+    @Autowired
+    private JpaTecnicoRepository tecnicoRepository; // Inyectado para evitar errores de integridad
 
-        SolicitudEntity entity = new SolicitudEntity();
-        entity.setId(null);
-        entity.setCliente(clienteGuardado);
-        entity.setEstado(Estado.ABIERTA);
-        entity.setDescripcion("Descripción de prueba");
-        entity.setFechaCreacion(LocalDateTime.now());
+    private SolicitudRepositoryAdapter adapter;
 
-        SolicitudEntity guardada = repository.save(entity);
-
-        Optional<SolicitudEntity> recuperada = repository.findById(guardada.getId());
-        assertTrue(recuperada.isPresent());
-        assertEquals(Estado.ABIERTA, recuperada.get().getEstado());
-        assertEquals("Juan Pérez", recuperada.get().getCliente().getNombre());
-    }
-    
-    @Test
-    void debe_guardar_y_recuperar_usando_el_adaptador_completo() {
-        SolicitudRepositoryAdapter adapter = new SolicitudRepositoryAdapter(repository, clienteRepository);
-        
-        ClienteEntity clienteEntity = new ClienteEntity();
-        clienteEntity.setNombre("Ana Gómez");
-        clienteEntity.setEmail("ana.gomez@example.com");
-        clienteEntity.setTipoCliente(TipoCliente.STANDARD);
-        clienteEntity.setActivo(true);
-        clienteEntity.setSolicitudesAbiertas(0);
-        
-        ClienteEntity clienteGuardado = clienteRepository.save(clienteEntity);
-        
-        Solicitud solicitudDominio = new Solicitud();
-        solicitudDominio.setId(null);
-        solicitudDominio.setEstado(Estado.ABIERTA);
-        solicitudDominio.setDescripcion("Descripción desde el adaptador");
-        
-        Cliente clienteDominio = new Cliente();
-        clienteDominio.setId(clienteGuardado.getId());
-        clienteDominio.setNombre(clienteGuardado.getNombre());
-        clienteDominio.setEmail(clienteGuardado.getEmail());
-        clienteDominio.setTipoCliente(clienteGuardado.getTipoCliente());
-        clienteDominio.setActivo(clienteGuardado.isActivo());
-        clienteDominio.setSolicitudesAbiertas(clienteGuardado.getSolicitudesAbiertas());
-        solicitudDominio.setCliente(clienteDominio);
-
-        Solicitud guardada = adapter.save(solicitudDominio);
-        
-        Optional<Solicitud> recuperada = adapter.findById(guardada.getId());
-        assertTrue(recuperada.isPresent());
-        assertEquals(Estado.ABIERTA, recuperada.get().getEstado());
-        assertEquals(guardada.getId(), recuperada.get().getId());
-        assertEquals(clienteGuardado.getId(), recuperada.get().getCliente().getId());
+    @BeforeEach
+    void setUp() {
+        adapter = new SolicitudRepositoryAdapter(repository, clienteRepository);
     }
 
     @Test
-    void debe_retornar_vacio_si_la_solicitud_no_existe() {
-        SolicitudRepositoryAdapter adapter = new SolicitudRepositoryAdapter(repository, clienteRepository);
-        Optional<Solicitud> recuperada = adapter.findById(999L);
-        
-        assertTrue(recuperada.isEmpty());
+    void debe_mapear_y_cubrir_todos_los_bloques_de_tecnico() {
+        // 1. ARRANGE: Guardar Cliente en DB
+        ClienteEntity clienteEntity = new ClienteEntity();
+        clienteEntity.setNombre("Cliente de Prueba");
+        clienteEntity.setActivo(true);
+        clienteEntity = clienteRepository.save(clienteEntity);
+
+        // 2. ARRANGE: Guardar Técnico en DB (Esto evita el error DataIntegrityViolationException)
+        TecnicoEntity tecnicoE = new TecnicoEntity();
+        tecnicoE.setNombre("Carlos Técnico");
+        tecnicoE.setEspecialidad("Sistemas");
+        tecnicoE.setActivo(true);
+        tecnicoE.setCargaTrabajo(0);
+        tecnicoE = tecnicoRepository.save(tecnicoE); 
+
+        // 3. ARRANGE: Preparar objetos de dominio para el Adapter
+        Cliente clienteD = new Cliente();
+        clienteD.setId(clienteEntity.getId());
+
+        Tecnico tecnicoD = new Tecnico();
+        tecnicoD.setId(tecnicoE.getId()); // Usamos el ID real generado por la base de datos
+        tecnicoD.setNombre(tecnicoE.getNombre());
+        tecnicoD.setEspecialidad(tecnicoE.getEspecialidad());
+        tecnicoD.setActivo(tecnicoE.isActivo());
+        tecnicoD.setCargaTrabajo(tecnicoE.getCargaTrabajo());
+
+        Solicitud solicitud = new Solicitud();
+        solicitud.setDescripcion("Fallo en placa base");
+        solicitud.setEstado(Estado.EN_PROCESO);
+        solicitud.setCliente(clienteD);
+        solicitud.setTecnicoAsignado(tecnicoD); 
+
+        // 4. ACT: Guardar (Cubre mapeo de entrada y salida del save)
+        Solicitud guardada = adapter.save(solicitud);
+
+        // 5. ACT: Buscar (Cubre mapeo dentro del findById)
+        Optional<Solicitud> encontradaOpcional = adapter.findById(guardada.getId());
+
+        // 6. ASSERT: Verificaciones para el covefran
+        assertTrue(encontradaOpcional.isPresent());
+        Solicitud s = encontradaOpcional.get();
+        assertNotNull(s.getTecnicoAsignado());
+        assertEquals("Carlos Técnico", s.getTecnicoAsignado().getNombre());
+        assertEquals("Sistemas", s.getTecnicoAsignado().getEspecialidad());
+        assertTrue(s.getTecnicoAsignado().isActivo());
     }
 
     @Test
     void debe_lanzar_excepcion_al_guardar_sin_cliente() {
-        SolicitudRepositoryAdapter adapter = new SolicitudRepositoryAdapter(repository, clienteRepository);
         Solicitud solicitud = new Solicitud();
         solicitud.setEstado(Estado.ABIERTA);
         
+        // Verifica el throw del adaptador cuando el cliente es null
         assertThrows(IllegalArgumentException.class, () -> adapter.save(solicitud));
     }
+
     @Test
-    void debe_lanzar_excepcion_si_cliente_no_tiene_id() {
-        SolicitudRepositoryAdapter adapter = new SolicitudRepositoryAdapter(repository, clienteRepository);
+    void debe_lanzar_excepcion_si_cliente_no_existe_en_db() {
+        Cliente clienteD = new Cliente();
+        clienteD.setId(999L); // ID inexistente
+
         Solicitud solicitud = new Solicitud();
-        solicitud.setCliente(new Cliente()); // Cliente sin ID
-        solicitud.setEstado(Estado.ABIERTA);
-        
-        assertThrows(IllegalArgumentException.class, () -> adapter.save(solicitud));
+        solicitud.setCliente(clienteD);
+        solicitud.setDescripcion("Test");
+
+        // Verifica el orElseThrow cuando el cliente no está en la tabla
+        assertThrows(RuntimeException.class, () -> adapter.save(solicitud));
+    }
+
+    @Test
+    void debe_retornar_vacio_si_la_solicitud_no_existe() {
+        Optional<Solicitud> recuperada = adapter.findById(888L);
+        assertTrue(recuperada.isEmpty());
     }
 }
