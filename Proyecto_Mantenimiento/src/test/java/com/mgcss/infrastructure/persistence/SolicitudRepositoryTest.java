@@ -106,4 +106,13 @@ class SolicitudRepositoryTest {
         
         assertThrows(IllegalArgumentException.class, () -> adapter.save(solicitud));
     }
+    @Test
+    void debe_lanzar_excepcion_si_cliente_no_tiene_id() {
+        SolicitudRepositoryAdapter adapter = new SolicitudRepositoryAdapter(repository, clienteRepository);
+        Solicitud solicitud = new Solicitud();
+        solicitud.setCliente(new Cliente()); // Cliente sin ID
+        solicitud.setEstado(Estado.ABIERTA);
+        
+        assertThrows(IllegalArgumentException.class, () -> adapter.save(solicitud));
+    }
 }

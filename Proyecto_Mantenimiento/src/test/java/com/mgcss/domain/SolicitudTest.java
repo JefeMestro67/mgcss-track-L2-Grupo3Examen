@@ -80,4 +80,14 @@ class SolicitudTest {
         assertEquals(now, solicitud.getFechaCreacion());
         assertEquals(now, solicitud.getFechaCierre());
     }
+    @Test
+    void debe_guardar_el_tecnico_al_asignarlo() {
+        Solicitud solicitud = new Solicitud();
+        solicitud.setEstado(Estado.ABIERTA);
+        Tecnico tecnico = new Tecnico(true);
+
+        solicitud.asignarTecnico(tecnico);
+
+        assertEquals(tecnico, solicitud.getTecnicoAsignado()); // <-- Esto cubre el getter
+    }
 }
