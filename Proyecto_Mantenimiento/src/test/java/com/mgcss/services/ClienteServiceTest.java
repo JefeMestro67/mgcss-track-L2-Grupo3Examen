@@ -21,6 +21,8 @@ class ClienteServiceTest {
         servicio = new ClienteService(mockRepoCliente);
     }
 
+    // --- PRUEBAS DE crearSolicitud ---
+
     @Test
     void debe_crear_solicitud_para_cliente() {
         // ARRANGE
@@ -52,9 +54,10 @@ class ClienteServiceTest {
             servicio.crearSolicitud(1L);
         });
 
-        // REGLA DE ORO
         verify(mockRepoCliente, never()).save(any());
     }
+
+    // --- PRUEBAS DE desactivarCliente ---
 
     @Test
     void debe_desactivar_cliente_si_no_tiene_solicitudes_abiertas() {
@@ -83,8 +86,6 @@ class ClienteServiceTest {
         Cliente cliente = new Cliente();
         cliente.setId(1L);
         cliente.setNombre("Juan Pérez");
-        cliente.setEmail("juan.perez@example.com");
-        cliente.setTipoCliente(TipoCliente.STANDARD);
         cliente.setActivo(true);
         cliente.setSolicitudesAbiertas(1);
         
@@ -95,9 +96,21 @@ class ClienteServiceTest {
             servicio.desactivarCliente(1L);
         });
 
-        // REGLA DE ORO
         verify(mockRepoCliente, never()).save(any());
     }
+
+    @Test
+    void no_debe_desactivar_cliente_si_no_existe() {
+        // ARRANGE - Este test es nuevo para cubrir el orElseThrow de este método
+        when(mockRepoCliente.findById(1L)).thenReturn(Optional.empty());
+
+        // ACT & ASSERT
+        assertThrows(IllegalArgumentException.class, () -> {
+            servicio.desactivarCliente(1L);
+        });
+    }
+
+    // --- PRUEBAS DE finalizarSolicitud ---
 
     @Test
     void debe_finalizar_solicitud_para_cliente() {
@@ -119,6 +132,19 @@ class ClienteServiceTest {
         assertEquals(1, cliente.getSolicitudesAbiertas());
         verify(mockRepoCliente).save(cliente);
     }
+
+    @Test
+    void no_debe_finalizar_solicitud_si_cliente_no_existe() {
+        // ARRANGE - Cubre el orElseThrow de finalizarSolicitud
+        when(mockRepoCliente.findById(1L)).thenReturn(Optional.empty());
+
+        // ACT & ASSERT
+        assertThrows(IllegalArgumentException.class, () -> {
+            servicio.finalizarSolicitud(1L);
+        });
+    }
+
+    // --- PRUEBAS DE crearCliente ---
 
     @Test
     void debe_crear_y_guardar_un_cliente_nuevo() {

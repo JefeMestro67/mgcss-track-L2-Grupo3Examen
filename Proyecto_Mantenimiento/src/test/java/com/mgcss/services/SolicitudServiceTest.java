@@ -6,6 +6,7 @@ import com.mgcss.infrastructure.SolicitudRepository;
 
 import org.junit.jupiter.api.BeforeEach; 
 import org.junit.jupiter.api.Test;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
@@ -26,13 +27,19 @@ class SolicitudServiceTest {
 
     @Test
     void debe_guardar_solicitud_al_asignar_tecnico() {
-        // ARRANGE
+        // ARRANGE - Rellenamos todos los campos para cubrir getters/setters de Solicitud y Tecnico
         Solicitud solicitud = new Solicitud();
         solicitud.setId(1L);
+        solicitud.setDescripcion("Error en el sistema de login");
         solicitud.setEstado(Estado.ABIERTA);
+        solicitud.setFechaCreacion(LocalDateTime.now());
 
         Tecnico tecnico = new Tecnico();
+        tecnico.setId(99L);
+        tecnico.setNombre("Carlos Técnico");
+        tecnico.setEspecialidad("Sistemas");
         tecnico.setActivo(true);
+        tecnico.setCargaTrabajo(0);
         
         when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.of(solicitud));
         when(mockRepoTecnico.findById(99L)).thenReturn(Optional.of(tecnico));
@@ -43,6 +50,8 @@ class SolicitudServiceTest {
         // ASSERT
         verify(mockRepoSolicitud).save(solicitud);
         assertEquals(Estado.EN_PROCESO, solicitud.getEstado());
+        assertEquals(tecnico, solicitud.getTecnicoAsignado()); // Cubre el getter de tecnicoAsignado
+        assertEquals("Carlos Técnico", solicitud.getTecnicoAsignado().getNombre()); // Cubre getter de nombre
     }
     
     @Test
@@ -55,16 +64,17 @@ class SolicitudServiceTest {
             servicio.asignarTecnico(1L, 99L);
         });
 
-        // REGLA DE ORO
         verify(mockRepoSolicitud, never()).save(any());
     }
 
     @Test
     void debe_guardar_solicitud_al_cerrarla() {
-        // ARRANGE
+        // ARRANGE - Datos completos
         Solicitud solicitud = new Solicitud();
         solicitud.setId(1L);
+        solicitud.setDescripcion("PC no arranca");
         solicitud.setEstado(Estado.EN_PROCESO);
+        solicitud.setFechaCreacion(LocalDateTime.now().minusDays(1));
 
         when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.of(solicitud));
 
@@ -74,6 +84,7 @@ class SolicitudServiceTest {
         // ASSERT
         verify(mockRepoSolicitud).save(solicitud);
         assertEquals(Estado.CERRADA, solicitud.getEstado());
+        assertNotNull(solicitud.getFechaCierre(), "La fecha de cierre debe haberse generado"); // Cubre el setter/getter de fechaCierre
     }
 
     @Test
@@ -91,14 +102,17 @@ class SolicitudServiceTest {
             servicio.asignarTecnico(1L, 99L);
         });
 
-        // REGLA DE ORO
         verify(mockRepoSolicitud, never()).save(any());
     }
     
     @Test
     void debe_crear_y_guardar_una_solicitud_nueva() {
-        // ARRANGE
-        when(mockRepoSolicitud.save(any(Solicitud.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        // ARRANGE - Usamos answer para que el mock devuelva la solicitud que recibe
+        when(mockRepoSolicitud.save(any(Solicitud.class))).thenAnswer(invocation -> {
+            Solicitud s = invocation.getArgument(0);
+            s.setId(500L); // Simulamos que la DB le da un ID
+            return s;
+        });
 
         // ACT
         Solicitud creada = servicio.crearSolicitud();
@@ -107,7 +121,8 @@ class SolicitudServiceTest {
         verify(mockRepoSolicitud).save(any(Solicitud.class));
         
         assertNotNull(creada, "La solicitud no debe ser nula");
-        assertEquals(Estado.ABIERTA, creada.getEstado(), "Una solicitud nueva debe nacer en estado ABIERTA");
-        assertNotNull(creada.getFechaCreacion(), "La solicitud debe tener una fecha de creación asignada");
+        assertEquals(500L, creada.getId()); // Cubre getId
+        assertEquals(Estado.ABIERTA, creada.getEstado());
+        assertNotNull(creada.getFechaCreacion());
     }
 }
