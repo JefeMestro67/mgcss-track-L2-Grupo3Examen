@@ -22,7 +22,6 @@ class TecnicoRepositoryTest {
 
     @Test
     void debe_guardar_y_recuperar_un_tecnico_en_h2() {
-        // 1. ARRANGE
         TecnicoEntity entity = new TecnicoEntity();
         entity.setId(null);
         entity.setNombre("Carlos");
@@ -30,10 +29,8 @@ class TecnicoRepositoryTest {
         entity.setActivo(true);
         entity.setCargaTrabajo(0);
 
-        // 2. ACT
         TecnicoEntity guardado = jpaRepository.save(entity);
 
-        // 3. ASSERT
         Optional<TecnicoEntity> recuperado = jpaRepository.findById(guardado.getId());
         
         assertTrue(recuperado.isPresent());
@@ -43,20 +40,13 @@ class TecnicoRepositoryTest {
 
     @Test
     void debe_funcionar_el_ciclo_completo_con_el_adaptador_de_tecnico() {
-        // 1. ARRANGE
         TecnicoRepositoryAdapter adapter = new TecnicoRepositoryAdapter(jpaRepository);
         
-        Tecnico tecnicoDominio = new Tecnico();
-        tecnicoDominio.setId(null);
-        tecnicoDominio.setNombre("Ana");
-        tecnicoDominio.setActivo(true);
-        tecnicoDominio.setCargaTrabajo(3);
+        Tecnico tecnicoDominio = new Tecnico(null, "Ana", "Sistemas", true, 3);
 
-        // 2. ACT
         Tecnico guardado = adapter.save(tecnicoDominio);
         Optional<Tecnico> recuperado = adapter.findById(guardado.getId());
 
-        // 3. ASSERT
         assertTrue(recuperado.isPresent());
         assertEquals("Ana", recuperado.get().getNombre());
         assertEquals(3, recuperado.get().getCargaTrabajo());
@@ -67,7 +57,6 @@ class TecnicoRepositoryTest {
     void debe_retornar_vacio_si_el_tecnico_no_existe() {
         TecnicoRepositoryAdapter adapter = new TecnicoRepositoryAdapter(jpaRepository);
         Optional<Tecnico> recuperado = adapter.findById(999L);
-        
         assertTrue(recuperado.isEmpty());
     }
 
@@ -75,16 +64,12 @@ class TecnicoRepositoryTest {
     void debe_actualizar_un_tecnico() {
         TecnicoRepositoryAdapter adapter = new TecnicoRepositoryAdapter(jpaRepository);
         
-        Tecnico tecnico = new Tecnico();
-        tecnico.setNombre("Técnico Inicial");
-        tecnico.setEspecialidad("Sistemas");
-        tecnico.setActivo(true);
-        tecnico.setCargaTrabajo(0);
-        
+        Tecnico tecnico = new Tecnico(null, "Técnico Inicial", "Sistemas", true, 0);
         Tecnico guardado = adapter.save(tecnico);
         
-        guardado.setNombre("Técnico Actualizado");
-        Tecnico actualizado = adapter.save(guardado);
+        // Simular actualización con nuevo constructor
+        Tecnico tecnicoAActualizar = new Tecnico(guardado.getId(), "Técnico Actualizado", guardado.getEspecialidad(), guardado.isActivo(), guardado.getCargaTrabajo());
+        Tecnico actualizado = adapter.save(tecnicoAActualizar);
         
         assertEquals("Técnico Actualizado", actualizado.getNombre());
     }

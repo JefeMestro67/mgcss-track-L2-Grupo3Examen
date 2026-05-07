@@ -23,7 +23,6 @@ class ClienteRepositoryTest {
 
     @Test
     void debe_guardar_y_recuperar_un_cliente_en_h2() {
-        // 1. ARRANGE
         ClienteEntity entity = new ClienteEntity();
         entity.setId(null);
         entity.setNombre("Juan Pérez");
@@ -32,10 +31,8 @@ class ClienteRepositoryTest {
         entity.setActivo(true);
         entity.setSolicitudesAbiertas(0);
 
-        // 2. ACT
         ClienteEntity guardado = jpaRepository.save(entity);
 
-        // 3. ASSERT
         Optional<ClienteEntity> recuperado = jpaRepository.findById(guardado.getId());
         
         assertTrue(recuperado.isPresent());
@@ -46,22 +43,13 @@ class ClienteRepositoryTest {
 
     @Test
     void debe_funcionar_el_ciclo_completo_con_el_adaptador_de_cliente() {
-        // 1. ARRANGE
         ClienteRepositoryAdapter adapter = new ClienteRepositoryAdapter(jpaRepository);
         
-        Cliente clienteDominio = new Cliente();
-        clienteDominio.setId(null);
-        clienteDominio.setNombre("Ana Gómez");
-        clienteDominio.setEmail("ana.gomez@example.com");
-        clienteDominio.setTipoCliente(TipoCliente.STANDARD);
-        clienteDominio.setActivo(true);
-        clienteDominio.setSolicitudesAbiertas(2);
+        Cliente clienteDominio = new Cliente(null, "Ana Gómez", "ana.gomez@example.com", TipoCliente.STANDARD, true, 2);
 
-        // 2. ACT
         Cliente guardado = adapter.save(clienteDominio);
         Optional<Cliente> recuperado = adapter.findById(guardado.getId());
 
-        // 3. ASSERT
         assertTrue(recuperado.isPresent());
         assertEquals("Ana Gómez", recuperado.get().getNombre());
         assertEquals("ana.gomez@example.com", recuperado.get().getEmail());
@@ -73,7 +61,6 @@ class ClienteRepositoryTest {
     void debe_retornar_vacio_si_el_cliente_no_existe() {
         ClienteRepositoryAdapter adapter = new ClienteRepositoryAdapter(jpaRepository);
         Optional<Cliente> recuperado = adapter.findById(999L);
-        
         assertTrue(recuperado.isEmpty());
     }
 
@@ -81,17 +68,12 @@ class ClienteRepositoryTest {
     void debe_actualizar_un_cliente() {
         ClienteRepositoryAdapter adapter = new ClienteRepositoryAdapter(jpaRepository);
         
-        Cliente cliente = new Cliente();
-        cliente.setNombre("Cliente Inicial");
-        cliente.setEmail("inicial@example.com");
-        cliente.setTipoCliente(TipoCliente.STANDARD);
-        cliente.setActivo(true);
-        cliente.setSolicitudesAbiertas(0);
-        
+        Cliente cliente = new Cliente(null, "Cliente Inicial", "inicial@example.com", TipoCliente.STANDARD, true, 0);
         Cliente guardado = adapter.save(cliente);
         
-        guardado.setNombre("Cliente Actualizado");
-        Cliente actualizado = adapter.save(guardado);
+        // Al no tener setters, para actualizarlo tenemos que usar de nuevo su constructor simulando un cambio de nombre
+        Cliente clienteAActualizar = new Cliente(guardado.getId(), "Cliente Actualizado", guardado.getEmail(), guardado.getTipoCliente(), guardado.isActivo(), guardado.getSolicitudesAbiertas());
+        Cliente actualizado = adapter.save(clienteAActualizar);
         
         assertEquals("Cliente Actualizado", actualizado.getNombre());
     }

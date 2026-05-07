@@ -7,16 +7,10 @@ public class Cliente {
     private String email;
     private TipoCliente tipoCliente; 
     private boolean activo;
-    private int solicitudesAbiertas; // Número de solicitudes que el cliente tiene pendientes
+    private int solicitudesAbiertas;
 
     public Cliente() {
-        this.tipoCliente = TipoCliente.STANDARD; // Valor por defecto
-    }
-
-    public Cliente(boolean activo) {
-        this.activo = activo;
-        this.solicitudesAbiertas = 0;
-        this.tipoCliente = TipoCliente.STANDARD;
+        this.tipoCliente = TipoCliente.STANDARD; 
     }
 
     public Cliente(Long id, String nombre, String email, TipoCliente tipoCliente, boolean activo, int solicitudesAbiertas) {
@@ -28,26 +22,15 @@ public class Cliente {
         this.solicitudesAbiertas = solicitudesAbiertas;
     }
 
-    // Getters y Setters
+    // SOLO GETTERS (Cero Setters)
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    
     public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-    
     public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    
     public TipoCliente getTipoCliente() { return tipoCliente; }
-    public void setTipoCliente(TipoCliente tipoCliente) { this.tipoCliente = tipoCliente; }
-    
     public boolean isActivo() { return activo; }
-    public void setActivo(boolean activo) { this.activo = activo; }
-    
     public int getSolicitudesAbiertas() { return solicitudesAbiertas; }
-    public void setSolicitudesAbiertas(int solicitudesAbiertas) { this.solicitudesAbiertas = solicitudesAbiertas; }
 
-    // Regla 1: Un cliente no puede ser desactivado si tiene solicitudes pendientes
+    // REGLAS DE NEGOCIO
     public void desactivar() {
         if (this.solicitudesAbiertas > 0) {
             throw new IllegalStateException("No se puede desactivar un cliente con solicitudes abiertas");
@@ -55,7 +38,6 @@ public class Cliente {
         this.activo = false;
     }
 
-    // Regla 2: Un cliente inactivo no puede crear una nueva solicitud y hay límite de solicitudes
     public void crearSolicitud() {
         if (!this.activo) {
             throw new IllegalStateException("Solo un cliente activo puede crear nuevas solicitudes");
@@ -66,7 +48,6 @@ public class Cliente {
         this.solicitudesAbiertas++;
     }
 
-    // Regla 3: Se completa/cierra una solicitud, disminuyendo la carga del cliente
     public void finalizarSolicitud() {
         if (this.solicitudesAbiertas <= 0) {
             throw new IllegalStateException("El cliente no tiene solicitudes abiertas para finalizar");

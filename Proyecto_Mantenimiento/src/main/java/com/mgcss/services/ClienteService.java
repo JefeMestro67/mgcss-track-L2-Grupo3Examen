@@ -10,45 +10,37 @@ public class ClienteService {
     
     private final ClienteRepository clienteRepository;
 
-    // Inyección por constructor (Obligatorio para poder testear en aislamiento)
     public ClienteService(ClienteRepository clienteRepository) {
         this.clienteRepository = clienteRepository;
     }
 
+    public Cliente crearCliente(String nombre, String email) {
+        // Creamos el cliente de golpe con el constructor
+        Cliente nuevoCliente = new Cliente(
+            null, 
+            nombre, 
+            email, 
+            TipoCliente.STANDARD, 
+            true, 
+            0
+        );
+        
+        return clienteRepository.save(nuevoCliente);
+    }
+    
+    // Los métodos desactivarCliente y finalizarSolicitud no cambian 
+    // porque ya usaban métodos de negocio (desactivar() y finalizarSolicitud())
     public void desactivarCliente(Long clienteId) {
-        // 1. Recuperamos el cliente
         Cliente cliente = clienteRepository.findById(clienteId)
                 .orElseThrow(() -> new IllegalArgumentException("El cliente no existe"));
-
-        // 2. El servicio llama al dominio
         cliente.desactivar();
-
-        // 3. Guardamos el cambio
         clienteRepository.save(cliente);
     }
 
     public void finalizarSolicitud(Long clienteId) {
-        // 1. Recuperamos el cliente
         Cliente cliente = clienteRepository.findById(clienteId)
                 .orElseThrow(() -> new IllegalArgumentException("El cliente no existe"));
-
-        // 2. El servicio llama al dominio
         cliente.finalizarSolicitud();
-
-        // 3. Guardamos el cambio
         clienteRepository.save(cliente);
-    }
-
-    public Cliente crearCliente(String nombre, String email) {
-        // Creamos el cliente utilizando el constructor vacío y los setters
-        Cliente nuevoCliente = new Cliente();
-        nuevoCliente.setNombre(nombre);
-        nuevoCliente.setEmail(email);
-        nuevoCliente.setTipoCliente(TipoCliente.STANDARD); // Asignamos un tipo por defecto
-        nuevoCliente.setActivo(true);
-        nuevoCliente.setSolicitudesAbiertas(0);
-        
-        // Delegamos en el repositorio (el puerto) para que lo guarde
-        return clienteRepository.save(nuevoCliente);
     }
 }
