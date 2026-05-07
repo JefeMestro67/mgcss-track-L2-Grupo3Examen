@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 public class TecnicoService {
 
     private final TecnicoRepository tecnicoRepository;
+    
+    private static final String MSG_TECNICO_NO_EXISTE = "El técnico no existe";
 
     // Inyección por constructor para permitir el testeo en aislamiento
     public TecnicoService(TecnicoRepository tecnicoRepository) {
@@ -18,7 +20,7 @@ public class TecnicoService {
         
         // 1. Protegemos la búsqueda: si el Optional está vacío, lanzamos nuestra excepción
         Tecnico tecnico = tecnicoRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("El técnico no existe"));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_TECNICO_NO_EXISTE));
 
         // 2. El servicio llama al dominio
         tecnico.incrementarCarga();
@@ -31,7 +33,7 @@ public class TecnicoService {
         
         // 1. Recuperamos el técnico
         Tecnico tecnico = tecnicoRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("El técnico no existe"));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_TECNICO_NO_EXISTE));
 
         // 2. El servicio llama al dominio
         tecnico.desactivar();
@@ -44,7 +46,7 @@ public class TecnicoService {
         
         // 1. Recuperamos el técnico
         Tecnico tecnico = tecnicoRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("El técnico no existe"));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_TECNICO_NO_EXISTE));
 
         // 2. El servicio llama al dominio
         tecnico.finalizarTarea();
