@@ -1,6 +1,8 @@
 package com.mgcss.domain;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Solicitud {
     
@@ -11,6 +13,7 @@ public class Solicitud {
     private Estado estado; 
     private Tecnico tecnicoAsignado; 
     private LocalDateTime fechaCierre; 
+    private List<EstadoChange> historial = new ArrayList<>();
 
     public Solicitud() {
     }
@@ -37,31 +40,48 @@ public class Solicitud {
     // REGLAS DE NEGOCIO
     public void cerrar() {
         if (this.estado != Estado.EN_PROCESO) {
-            throw new IllegalStateException("Solo solicitudes en proceso pueden cerrarse");
+            throw new IllegalStateException("Solo se pueden cerrar solicitudes que estén EN_PROCESO");
         }
+        Estado anterior = this.estado;
+        
         this.estado = Estado.CERRADA;
-        this.fechaCierre = LocalDateTime.now(); 
+        this.fechaCierre = LocalDateTime.now();
+        
+        registrarCambio(anterior, this.estado);
     }
     
     public void asignarTecnico(Tecnico tecnico) {
-        if (this.estado == Estado.CERRADA) {
-            throw new IllegalStateException("No se puede asignar un técnico a una solicitud cerrada");
+        if (this.estado != Estado.ABIERTA) {
+            throw new IllegalStateException("Solo se puede asignar técnico a solicitudes ABIERTAS");
         }
         if (!tecnico.isActivo()) {
-            throw new IllegalStateException("Solo se puede asignar un técnico activo a una solicitud");
+            throw new IllegalStateException("No se puede asignar un técnico inactivo");
         }
-        this.estado = Estado.EN_PROCESO; 
+        
+        Estado anterior = this.estado;
         this.tecnicoAsignado = tecnico;
+        this.estado = Estado.EN_PROCESO;
+
+        registrarCambio(anterior, this.estado);
     }
     
     public void reabrir() {
-        // Regla de negocio: Solo se puede reabrir si está CERRADA
         if (this.estado != Estado.CERRADA) {
-            throw new IllegalStateException("Solo se pueden reabrir solicitudes que estén en estado CERRADA");
+            throw new IllegalStateException("Solo se pueden reabrir solicitudes que estén CERRADAS");
         }
+        Estado anterior = this.estado;
         
-        // Al reabrir, vuelve a estar en proceso y se limpia la fecha de finalización
         this.estado = Estado.EN_PROCESO;
         this.fechaCierre = null;
+        
+        registrarCambio(anterior, this.estado);
+    }
+    
+    private void registrarCambio(Estado anterior, Estado nuevo) {
+        this.historial.add(new EstadoChange(anterior, nuevo));
+    }
+    
+    public List<EstadoChange> getHistorial() {
+        return historial;
     }
 }
