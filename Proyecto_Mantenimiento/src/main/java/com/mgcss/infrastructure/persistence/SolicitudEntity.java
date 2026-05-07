@@ -1,12 +1,17 @@
 package com.mgcss.infrastructure.persistence;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.mgcss.domain.Estado;
 
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -39,6 +44,11 @@ public class SolicitudEntity {
 
     private LocalDateTime fechaCierre;
 
+    // --- NUEVO: HISTORIAL DE ESTADOS ---
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "solicitud_historial", joinColumns = @JoinColumn(name = "solicitud_id"))
+    private List<EstadoChangeEntity> historial = new ArrayList<>();
+
     public SolicitudEntity() {
     }
 
@@ -52,6 +62,7 @@ public class SolicitudEntity {
         this.fechaCierre = fechaCierre;
     }
 
+    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -72,4 +83,13 @@ public class SolicitudEntity {
 
     public LocalDateTime getFechaCierre() { return fechaCierre; }
     public void setFechaCierre(LocalDateTime fechaCierre) { this.fechaCierre = fechaCierre; }
+
+    // --- NUEVOS MÉTODOS PARA EL HISTORIAL ---
+    public List<EstadoChangeEntity> getHistorial() {
+        return historial;
+    }
+
+    public void setHistorial(List<EstadoChangeEntity> historial) {
+        this.historial = historial;
+    }
 }

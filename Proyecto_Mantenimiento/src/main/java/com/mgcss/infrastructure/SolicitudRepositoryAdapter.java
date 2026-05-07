@@ -1,6 +1,8 @@
 package com.mgcss.infrastructure;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.List;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +49,14 @@ public class SolicitudRepositoryAdapter implements SolicitudRepository {
         }
         
         entity.setFechaCierre(solicitud.getFechaCierre());
+
+        // --- MAPEO DEL HISTORIAL (Dominio -> Entidad) ---
+        List<EstadoChangeEntity> historialEntities = solicitud.getHistorial().stream()
+                .map(h -> new EstadoChangeEntity(h.getEstadoAnterior(), h.getEstadoNuevo(), h.getFechaCambio()))
+                .collect(Collectors.toList());
+        entity.setHistorial(historialEntities);
+        // ------------------------------------------------
+
         SolicitudEntity guardada = jpaRepository.save(entity);
         return mapToDomain(guardada);
     }
@@ -80,7 +90,8 @@ public class SolicitudRepositoryAdapter implements SolicitudRepository {
             );
         }
         
-        return new Solicitud(
+        // Creamos el objeto de dominio
+        Solicitud solicitud = new Solicitud(
             entity.getId(),
             clienteDominio,
             entity.getDescripcion(),
@@ -89,5 +100,16 @@ public class SolicitudRepositoryAdapter implements SolicitudRepository {
             tecnicoDominio,
             entity.getFechaCierre()
         );
+
+        // --- MAPEO DEL HISTORIAL (Entidad -> Dominio) ---
+        // Como el historial en Solicitud es privado, lo restauramos mediante los cambios guardados
+        if (entity.getHistorial() != null) {
+            entity.getHistorial().forEach(h -> 
+                solicitud.getHistorial().add(new EstadoChange(h.getEstadoAnterior(), h.getEstadoNuevo()))
+            );
+        }
+        // ------------------------------------------------
+
+        return solicitud;
     }
 }
