@@ -53,4 +53,15 @@ public class Solicitud {
         this.estado = Estado.EN_PROCESO; 
         this.tecnicoAsignado = tecnico;
     }
+    
+    public void reabrir() {
+        // Regla de negocio: Solo se puede reabrir si está CERRADA
+        if (this.estado != Estado.CERRADA) {
+            throw new IllegalStateException("Solo se pueden reabrir solicitudes que estén en estado CERRADA");
+        }
+        
+        // Al reabrir, vuelve a estar en proceso y se limpia la fecha de finalización
+        this.estado = Estado.EN_PROCESO;
+        this.fechaCierre = null;
+    }
 }

@@ -3,6 +3,7 @@ package com.mgcss.domain;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import java.time.LocalDateTime;
 
 class SolicitudTest {
@@ -71,7 +72,7 @@ class SolicitudTest {
         solicitud.cerrar();
         assertEquals(Estado.CERRADA, solicitud.getEstado());
         
-        // 3. Intentar REABRIR (Este método aún no existe, el IDE marcará error en rojo)
+        // 3. Intentar REABRIR
         solicitud.reabrir();
         
         // 4. Verificar que el estado vuelve a ser EN_PROCESO y se limpia la fecha de cierre
