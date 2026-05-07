@@ -59,4 +59,23 @@ class SolicitudTest {
         solicitud.asignarTecnico(tecnico);
         assertEquals(tecnico, solicitud.getTecnicoAsignado()); 
     }
+    
+    @Test
+    void debe_permitir_reabrir_una_solicitud_cerrada() {
+        // 1. Crear solicitud y pasarla a EN_PROCESO asignando un técnico
+        Solicitud solicitud = new Solicitud(1L, null, "Error de red", LocalDateTime.now(), Estado.ABIERTA, null, null);
+        Tecnico tecnico = new Tecnico(1L, "Juan", "Sistemas", true, 0);
+        solicitud.asignarTecnico(tecnico);
+        
+        // 2. Cerrar la solicitud
+        solicitud.cerrar();
+        assertEquals(Estado.CERRADA, solicitud.getEstado());
+        
+        // 3. Intentar REABRIR (Este método aún no existe, el IDE marcará error en rojo)
+        solicitud.reabrir();
+        
+        // 4. Verificar que el estado vuelve a ser EN_PROCESO y se limpia la fecha de cierre
+        assertEquals(Estado.EN_PROCESO, solicitud.getEstado());
+        assertNull(solicitud.getFechaCierre());
+    }
 }
