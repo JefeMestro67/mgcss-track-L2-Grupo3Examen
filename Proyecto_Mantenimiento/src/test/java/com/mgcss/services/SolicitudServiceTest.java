@@ -1,11 +1,13 @@
 package com.mgcss.services;
 
 import com.mgcss.domain.*;
+import com.mgcss.infrastructure.ClienteRepository;
 import com.mgcss.infrastructure.TecnicoRepository;
 import com.mgcss.infrastructure.SolicitudRepository;
 
 import org.junit.jupiter.api.BeforeEach; 
 import org.junit.jupiter.api.Test;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
@@ -13,96 +15,122 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SolicitudServiceTest {
 
-    // 1. Declaramos los mocks y el servicio a nivel de clase
     private SolicitudRepository mockRepoSolicitud;
     private TecnicoRepository mockRepoTecnico;
+    private ClienteRepository mockRepoCliente;
     private SolicitudService servicio;
 
-    // 2. Lo configuramos UNA SOLA VEZ
     @BeforeEach
     void setUp() {
         mockRepoSolicitud = mock(SolicitudRepository.class);
         mockRepoTecnico = mock(TecnicoRepository.class);
-        servicio = new SolicitudService(mockRepoSolicitud, mockRepoTecnico); 
+        mockRepoCliente = mock(ClienteRepository.class);
+        servicio = new SolicitudService(mockRepoSolicitud, mockRepoTecnico, mockRepoCliente); 
     }
 
     @Test
-    void debe_guardar_solicitud_al_asignar_tecnico() {
-        // ARRANGE (Solo los datos específicos de este test)
-        Solicitud solicitud = new Solicitud(1L, Estado.ABIERTA, null);
-        Tecnico tecnico = new Tecnico(true);
+    void debe_crear_solicitud_y_asociarla_al_cliente_incrementando_carga() {
+        Cliente cliente = new Cliente(1L, "Juan", "juan@test.com", TipoCliente.STANDARD, true, 0);
         
+        when(mockRepoCliente.findById(1L)).thenReturn(Optional.of(cliente));
+        when(mockRepoSolicitud.save(any(Solicitud.class))).thenAnswer(i -> i.getArgument(0));
+
+        Solicitud creada = servicio.crearSolicitud(1L, "Mi PC no arranca");
+
+        assertNotNull(creada);
+        assertEquals(cliente, creada.getCliente());
+        assertEquals("Mi PC no arranca", creada.getDescripcion());
+        assertEquals(1, cliente.getSolicitudesAbiertas()); 
+
+        verify(mockRepoCliente).save(cliente);
+        verify(mockRepoSolicitud).save(any(Solicitud.class));
+    }
+
+    @Test
+    void asignarTecnico_debe_incrementar_carga_del_tecnico() {
+        Solicitud solicitud = new Solicitud(1L, null, "Desc", LocalDateTime.now(), Estado.ABIERTA, null, null);
+        Tecnico tecnico = new Tecnico(99L, "Carlos", "Sistemas", true, 0);
+
         when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.of(solicitud));
         when(mockRepoTecnico.findById(99L)).thenReturn(Optional.of(tecnico));
 
-        // ACT
         servicio.asignarTecnico(1L, 99L);
 
-        // ASSERT
-        verify(mockRepoSolicitud).save(solicitud);
         assertEquals(Estado.EN_PROCESO, solicitud.getEstado());
+        assertEquals(tecnico, solicitud.getTecnicoAsignado());
+        assertEquals(1, tecnico.getCargaTrabajo()); 
+
+        verify(mockRepoTecnico).save(tecnico);
+        verify(mockRepoSolicitud).save(solicitud);
     }
-    
+
     @Test
-    void debe_lanzar_excepcion_si_solicitud_no_existe() {
-        // ARRANGE
-        when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.empty());
+    void cerrarSolicitud_debe_liberar_carga_de_cliente_y_tecnico() {
+        Cliente cliente = new Cliente(10L, "Juan", "j@test.com", TipoCliente.STANDARD, true, 2);
+        Tecnico tecnico = new Tecnico(99L, "Carlos", "Sistemas", true, 3);
+        Solicitud solicitud = new Solicitud(1L, cliente, "Desc", LocalDateTime.now(), Estado.EN_PROCESO, tecnico, null);
 
-        // ACT & ASSERT
-        assertThrows(IllegalArgumentException.class, () -> {
-            servicio.asignarTecnico(1L, 99L);
-        });
+        when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.of(solicitud));
 
-        // REGLA DE ORO
+        servicio.cerrarSolicitud(1L);
+
+        assertEquals(Estado.CERRADA, solicitud.getEstado());
+        assertEquals(1, cliente.getSolicitudesAbiertas()); 
+        assertEquals(2, tecnico.getCargaTrabajo());        
+
+        verify(mockRepoCliente).save(cliente);
+        verify(mockRepoTecnico).save(tecnico);
+        verify(mockRepoSolicitud).save(solicitud);
+    }
+
+    @Test
+    void crearSolicitud_falla_si_cliente_no_existe() {
+        when(mockRepoCliente.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> servicio.crearSolicitud(1L, "Error"));
         verify(mockRepoSolicitud, never()).save(any());
     }
 
     @Test
-    void debe_guardar_solicitud_al_cerrarla() {
-        // ARRANGE
-        Solicitud solicitud = new Solicitud(1L, Estado.EN_PROCESO, null);
+    void asignarTecnico_falla_y_no_guarda_si_tecnico_inactivo() {
+        Solicitud solicitud = new Solicitud(1L, null, "Desc", LocalDateTime.now(), Estado.ABIERTA, null, null);
+        Tecnico tecnicoInactivo = new Tecnico(99L, "Inactivo", "Sistemas", false, 0);
+
         when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.of(solicitud));
+        when(mockRepoTecnico.findById(99L)).thenReturn(Optional.of(tecnicoInactivo));
 
-        // ACT
-        servicio.cerrarSolicitud(1L);
+        assertThrows(IllegalStateException.class, () -> servicio.asignarTecnico(1L, 99L));
 
-        // ASSERT
-        verify(mockRepoSolicitud).save(solicitud);
-        assertEquals(Estado.CERRADA, solicitud.getEstado());
+        verify(mockRepoSolicitud, never()).save(any());
+        verify(mockRepoTecnico, never()).save(any());
+    }
+    
+    @Test
+    void asignarTecnico_Falla_Cuando_Solicitud_No_Existe_Explicito() {
+        when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> {
+            servicio.asignarTecnico(1L, 99L);
+        });
+        verify(mockRepoTecnico, never()).findById(anyLong());
+        verify(mockRepoSolicitud, never()).save(any());
     }
 
     @Test
-    void debe_lanzar_excepcion_si_tecnico_no_existe() {
-        // ARRANGE
-        Solicitud solicitud = new Solicitud(1L, Estado.ABIERTA, null);
+    void asignarTecnico_Falla_Cuando_Tecnico_No_Existe_Explicito() {
+        Solicitud solicitud = new Solicitud(1L, null, "Desc", LocalDateTime.now(), Estado.ABIERTA, null, null);
         when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.of(solicitud));
         when(mockRepoTecnico.findById(99L)).thenReturn(Optional.empty());
 
-        // ACT & ASSERT
         assertThrows(IllegalArgumentException.class, () -> {
             servicio.asignarTecnico(1L, 99L);
         });
-
-        // REGLA DE ORO
         verify(mockRepoSolicitud, never()).save(any());
     }
-    
+
     @Test
-    void debe_crear_y_guardar_una_solicitud_nueva() {
-        // ARRANGE
-        // Le decimos a Mockito: "Cuando alguien llame a save() con cualquier solicitud, devuelve esa misma solicitud"
-        when(mockRepoSolicitud.save(any(Solicitud.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        // ACT
-        Solicitud creada = servicio.crearSolicitud();
-
-        // ASSERT
-        // 1. Verificamos que el servicio orquestó la llamada al repositorio
-        verify(mockRepoSolicitud).save(any(Solicitud.class));
-        
-        // 2. Verificamos que la lógica de negocio básica se aplicó correctamente
-        assertNotNull(creada, "La solicitud no debe ser nula");
-        assertEquals(Estado.ABIERTA, creada.getEstado(), "Una solicitud nueva debe nacer en estado ABIERTA");
-        assertNotNull(creada.getFechaCreacion(), "La solicitud debe tener una fecha de creación asignada");
+    void cerrarSolicitud_Falla_Si_No_Existe() {
+        when(mockRepoSolicitud.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> {
+            servicio.cerrarSolicitud(1L);
+        });
     }
 }

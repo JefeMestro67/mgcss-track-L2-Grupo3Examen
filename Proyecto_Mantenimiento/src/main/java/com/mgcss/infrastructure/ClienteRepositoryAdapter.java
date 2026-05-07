@@ -2,7 +2,6 @@ package com.mgcss.infrastructure;
 
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
-
 import com.mgcss.domain.Cliente;
 import com.mgcss.infrastructure.persistence.JpaClienteRepository;
 import com.mgcss.infrastructure.persistence.ClienteEntity;
@@ -18,40 +17,34 @@ public class ClienteRepositoryAdapter implements ClienteRepository {
 
     @Override
     public Cliente save(Cliente cliente) {
-        // 1. Traduce de Dominio a Entidad
+        // Mapeo a entidad usando su constructor
         ClienteEntity entity = new ClienteEntity(
-            cliente.getId(), 
-            cliente.getNombre(), 
-            cliente.getEmail(), 
-            cliente.isActivo(), 
+            cliente.getId(),
+            cliente.getNombre(),
+            cliente.getEmail(),
+            cliente.getTipoCliente(),
+            cliente.isActivo(),
             cliente.getSolicitudesAbiertas()
         );
-
-        // 2. Guarda en la base de datos
+        
         ClienteEntity guardado = jpaRepository.save(entity);
-
-        // 3. Devuelve un objeto de Dominio actualizado
-        return new Cliente(
-            guardado.getId(), 
-            guardado.getNombre(), 
-            guardado.getEmail(), 
-            guardado.isActivo(), 
-            guardado.getSolicitudesAbiertas()
-        );
+        return mapToDomain(guardado);
     }
 
     @Override
     public Optional<Cliente> findById(Long id) {
-        // 1. Busca en la base de datos
-        Optional<ClienteEntity> entityOpcional = jpaRepository.findById(id);
+        return jpaRepository.findById(id).map(this::mapToDomain);
+    }
 
-        // 2. Si lo encuentra, lo traduce a Dominio
-        return entityOpcional.map(entity -> new Cliente(
-            entity.getId(), 
-            entity.getNombre(), 
-            entity.getEmail(), 
-            entity.isActivo(), 
+    private Cliente mapToDomain(ClienteEntity entity) {
+        // Mapeo a dominio usando su constructor completo
+        return new Cliente(
+            entity.getId(),
+            entity.getNombre(),
+            entity.getEmail(),
+            entity.getTipoCliente(),
+            entity.isActivo(),
             entity.getSolicitudesAbiertas()
-        ));
+        );
     }
 }

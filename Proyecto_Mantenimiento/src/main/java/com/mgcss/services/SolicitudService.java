@@ -1,54 +1,81 @@
 package com.mgcss.services;
 
+import com.mgcss.domain.Cliente;
 import com.mgcss.domain.Solicitud;
 import com.mgcss.domain.Tecnico;
+import com.mgcss.domain.Estado;
+import com.mgcss.infrastructure.ClienteRepository;
 import com.mgcss.infrastructure.SolicitudRepository;
 import com.mgcss.infrastructure.TecnicoRepository;
+import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
 
+@Service
 public class SolicitudService {
     
     private final SolicitudRepository solicitudRepository;
     private final TecnicoRepository tecnicoRepository;
+    private final ClienteRepository clienteRepository;
 
-    // Inyección por constructor (Obligatorio para poder testear en aislamiento)
-    public SolicitudService(SolicitudRepository solicitudRepository, TecnicoRepository tecnicoRepository) {
+    public SolicitudService(SolicitudRepository solicitudRepository, 
+                            TecnicoRepository tecnicoRepository,
+                            ClienteRepository clienteRepository) {
         this.solicitudRepository = solicitudRepository;
         this.tecnicoRepository = tecnicoRepository;
+        this.clienteRepository = clienteRepository;
+    }
+
+    public Solicitud crearSolicitud(Long clienteId, String descripcion) {
+        Cliente cliente = clienteRepository.findById(clienteId)
+                .orElseThrow(() -> new IllegalArgumentException("El cliente no existe"));
+                
+        cliente.crearSolicitud(); 
+
+        // Usamos el constructor completo porque ya no hay setters
+        Solicitud nuevaSolicitud = new Solicitud(
+            null, 
+            cliente, 
+            descripcion, 
+            LocalDateTime.now(), 
+            Estado.ABIERTA, 
+            null, 
+            null
+        );
+        
+        clienteRepository.save(cliente);
+        return solicitudRepository.save(nuevaSolicitud);
     }
 
     public void asignarTecnico(Long solicitudId, Long tecnicoId) {
-        
-        // 1. Protegemos la búsqueda: si el Optional está vacío, lanzamos nuestra excepción
         Solicitud solicitud = solicitudRepository.findById(solicitudId)
                 .orElseThrow(() -> new IllegalArgumentException("La solicitud no existe"));
                 
         Tecnico tecnico = tecnicoRepository.findById(tecnicoId)
                 .orElseThrow(() -> new IllegalArgumentException("El técnico no existe"));
 
-        // 2. El servicio llama al dominio.
-        solicitud.asignarTecnico(tecnico);
+        solicitud.asignarTecnico(tecnico); 
+        tecnico.incrementarCarga(); 
 
-        // 3. Guardamos el estado final
+        tecnicoRepository.save(tecnico);
         solicitudRepository.save(solicitud);
     }
     
     public void cerrarSolicitud(Long solicitudId) {
-        // 1. Recuperamos la solicitud
         Solicitud solicitud = solicitudRepository.findById(solicitudId)
                 .orElseThrow(() -> new IllegalArgumentException("La solicitud no existe"));
 
-        // 2. El servicio llama al dominio
         solicitud.cerrar();
 
-        // 3. Guardamos el cambio
+        Cliente cliente = solicitud.getCliente();
+        cliente.finalizarSolicitud();
+        clienteRepository.save(cliente);
+
+        Tecnico tecnico = solicitud.getTecnicoAsignado();
+        if (tecnico != null) {
+            tecnico.finalizarTarea();
+            tecnicoRepository.save(tecnico);
+        }
+
         solicitudRepository.save(solicitud);
-    }
-    
-    public Solicitud crearSolicitud() {
-        // Creamos una solicitud pura de dominio, sin ID (porque lo genera la BD) y en estado inicial ABIERTA
-        Solicitud nuevaSolicitud = new Solicitud(null, com.mgcss.domain.Estado.ABIERTA, java.time.LocalDateTime.now());
-        
-        // Delegamos en el repositorio (el puerto) para que la guarde
-        return solicitudRepository.save(nuevaSolicitud);
     }
 }

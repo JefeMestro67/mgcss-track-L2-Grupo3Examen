@@ -5,44 +5,52 @@ import java.time.LocalDateTime;
 public class Solicitud {
     
     private Long id;
-    private Estado estado; 
+    private Cliente cliente; 
+    private String descripcion;
     private LocalDateTime fechaCreacion;
+    private Estado estado; 
+    private Tecnico tecnicoAsignado; 
+    private LocalDateTime fechaCierre; 
 
     public Solicitud() {
     }
 
-    public Solicitud(Long id, Estado estado, LocalDateTime fechaCreacion) {
+    public Solicitud(Long id, Cliente cliente, String descripcion, LocalDateTime fechaCreacion, Estado estado, Tecnico tecnicoAsignado, LocalDateTime fechaCierre) {
         this.id = id;
-        this.estado = estado;
+        this.cliente = cliente;
+        this.descripcion = descripcion;
         this.fechaCreacion = fechaCreacion;
+        this.estado = estado;
+        this.tecnicoAsignado = tecnicoAsignado;
+        this.fechaCierre = fechaCierre;
     }
 
+    // SOLO GETTERS (Cero Setters)
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Estado getEstado() { return estado; }
-    public void setEstado(Estado estado) { this.estado = estado; }
+    public Cliente getCliente() { return cliente; }
+    public String getDescripcion() { return descripcion; }
     public LocalDateTime getFechaCreacion() { return fechaCreacion; }
-    public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
-    
-    //Regla 1
+    public Estado getEstado() { return estado; }
+    public Tecnico getTecnicoAsignado() { return tecnicoAsignado; }
+    public LocalDateTime getFechaCierre() { return fechaCierre; }
+
+    // REGLAS DE NEGOCIO
     public void cerrar() {
         if (this.estado != Estado.EN_PROCESO) {
             throw new IllegalStateException("Solo solicitudes en proceso pueden cerrarse");
         }
         this.estado = Estado.CERRADA;
+        this.fechaCierre = LocalDateTime.now(); 
     }
     
     public void asignarTecnico(Tecnico tecnico) {
-        // Regla 3 
         if (this.estado == Estado.CERRADA) {
             throw new IllegalStateException("No se puede asignar un técnico a una solicitud cerrada");
         }
-        
-        // Regla 2
         if (!tecnico.isActivo()) {
             throw new IllegalStateException("Solo se puede asignar un técnico activo a una solicitud");
         }
-
         this.estado = Estado.EN_PROCESO; 
+        this.tecnicoAsignado = tecnico;
     }
 }

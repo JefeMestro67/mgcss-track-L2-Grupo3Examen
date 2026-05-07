@@ -2,7 +2,6 @@ package com.mgcss.infrastructure;
 
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
-
 import com.mgcss.domain.Tecnico;
 import com.mgcss.infrastructure.persistence.JpaTecnicoRepository;
 import com.mgcss.infrastructure.persistence.TecnicoEntity;
@@ -18,37 +17,32 @@ public class TecnicoRepositoryAdapter implements TecnicoRepository {
 
     @Override
     public Tecnico save(Tecnico tecnico) {
-        // 1. Traduce de Dominio a Entidad (incluyendo la carga de trabajo y nombre)
+        // La entidad (persistence) SÍ sigue teniendo setters, así que esto es correcto
         TecnicoEntity entity = new TecnicoEntity(
-            tecnico.getId(), 
-            tecnico.getNombre(), 
-            tecnico.isActivo(), 
+            tecnico.getId(),
+            tecnico.getNombre(),
+            tecnico.getEspecialidad(),
+            tecnico.isActivo(),
             tecnico.getCargaTrabajo()
         );
-
-        // 2. Guarda en la base de datos (H2 para los tests de la Sesión 7)
+        
         TecnicoEntity guardado = jpaRepository.save(entity);
-
-        // 3. Devuelve un objeto de Dominio actualizado
-        return new Tecnico(
-            guardado.getId(), 
-            guardado.getNombre(), 
-            guardado.isActivo(), 
-            guardado.getCargaTrabajo()
-        );
+        return mapToDomain(guardado);
     }
 
     @Override
     public Optional<Tecnico> findById(Long id) {
-        // 1. Busca en la base de datos
-        Optional<TecnicoEntity> entityOpcional = jpaRepository.findById(id);
+        return jpaRepository.findById(id).map(this::mapToDomain);
+    }
 
-        // 2. Si lo encuentra, lo traduce a Dominio usando el nuevo constructor
-        return entityOpcional.map(entity -> new Tecnico(
-            entity.getId(), 
-            entity.getNombre(), 
-            entity.isActivo(), 
+    private Tecnico mapToDomain(TecnicoEntity entity) {
+        // Usamos el constructor completo del dominio porque ya no hay setters
+        return new Tecnico(
+            entity.getId(),
+            entity.getNombre(),
+            entity.getEspecialidad(),
+            entity.isActivo(),
             entity.getCargaTrabajo()
-        ));
+        );
     }
 }

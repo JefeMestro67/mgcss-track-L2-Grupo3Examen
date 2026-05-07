@@ -1,18 +1,21 @@
 package com.mgcss.infrastructure.persistence;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
+import com.mgcss.domain.Cliente;
 import com.mgcss.domain.Estado;
 import com.mgcss.domain.Solicitud;
+import com.mgcss.domain.Tecnico;
+import com.mgcss.domain.TipoCliente;
 import com.mgcss.infrastructure.SolicitudRepositoryAdapter;
 
 @DataJpaTest
@@ -22,39 +25,66 @@ class SolicitudRepositoryTest {
     @Autowired
     private JpaSolicitudRepository repository;
 
-    @Test
-    void debe_guardar_y_recuperar_una_solicitud_real() {
-        // 1. ARRANGE: Creamos la entidad (la caja tonta de infra)
-        SolicitudEntity entity = new SolicitudEntity(null, Estado.ABIERTA, LocalDateTime.now());
+    @Autowired
+    private JpaClienteRepository clienteRepository;
 
-        // 2. ACT: La guardamos de verdad en H2
-        SolicitudEntity guardada = repository.save(entity);
+    @Autowired
+    private JpaTecnicoRepository tecnicoRepository; 
 
-        // 3. ASSERT: La buscamos por ID y comprobamos que no se ha perdido nada
-        Optional<SolicitudEntity> recuperada = repository.findById(guardada.getId());
-        
-        assertTrue(recuperada.isPresent(), "La solicitud debería estar en la base de datos");
-        assertEquals(Estado.ABIERTA, recuperada.get().getEstado());
-        System.out.println("ID generado por H2: " + recuperada.get().getId());
+    private SolicitudRepositoryAdapter adapter;
+
+    @BeforeEach
+    void setUp() {
+        adapter = new SolicitudRepositoryAdapter(repository, clienteRepository, tecnicoRepository);
     }
-    
+
     @Test
-    void debe_guardar_y_recuperar_usando_el_adaptador_completo() {
-        // 1. ARRANGE: Instanciamos el adaptador pasándole el repositorio JPA real
-        SolicitudRepositoryAdapter adapter = new SolicitudRepositoryAdapter(repository);
+    void debe_mapear_y_cubrir_todos_los_bloques_de_tecnico() {
+        ClienteEntity clienteEntity = new ClienteEntity();
+        clienteEntity.setNombre("Cliente de Prueba");
+        clienteEntity.setActivo(true);
+        clienteEntity = clienteRepository.save(clienteEntity);
+
+        TecnicoEntity tecnicoE = new TecnicoEntity();
+        tecnicoE.setNombre("Carlos Técnico");
+        tecnicoE.setEspecialidad("Sistemas");
+        tecnicoE.setActivo(true);
+        tecnicoE.setCargaTrabajo(0);
+        tecnicoE = tecnicoRepository.save(tecnicoE); 
+
+        Cliente clienteD = new Cliente(clienteEntity.getId(), "Cliente de Prueba", null, TipoCliente.STANDARD, true, 0);
+        Tecnico tecnicoD = new Tecnico(tecnicoE.getId(), "Carlos Técnico", "Sistemas", true, 0);
+
+        Solicitud solicitud = new Solicitud(null, clienteD, "Fallo en placa base", LocalDateTime.now(), Estado.EN_PROCESO, tecnicoD, null);
+
+        Solicitud guardada = adapter.save(solicitud);
+        Optional<Solicitud> encontradaOpcional = adapter.findById(guardada.getId());
+
+        assertTrue(encontradaOpcional.isPresent());
+        Solicitud s = encontradaOpcional.get();
+        assertNotNull(s.getTecnicoAsignado());
+        assertEquals("Carlos Técnico", s.getTecnicoAsignado().getNombre());
+        assertEquals("Sistemas", s.getTecnicoAsignado().getEspecialidad());
+        assertTrue(s.getTecnicoAsignado().isActivo());
+    }
+
+    @Test
+    void debe_lanzar_excepcion_al_guardar_sin_cliente() {
+        Solicitud solicitud = new Solicitud(null, null, "Sin cliente", LocalDateTime.now(), Estado.ABIERTA, null, null);
+        assertThrows(IllegalArgumentException.class, () -> adapter.save(solicitud));
+    }
+
+    @Test
+    void debe_lanzar_excepcion_si_cliente_no_existe_en_db() {
+        Cliente clienteD = new Cliente(999L, "Falso", null, TipoCliente.STANDARD, true, 0);
+        Solicitud solicitud = new Solicitud(null, clienteD, "Test", LocalDateTime.now(), Estado.ABIERTA, null, null);
         
-        // Creamos una solicitud de DOMINIO puro (la que usaría el Service)
-        Solicitud solicitudDominio = new Solicitud(null, Estado.ABIERTA, LocalDateTime.now());
-        
-        // 2. ACT: Guardamos usando el ADAPTADOR (Cubre el método save del adaptador)
-        Solicitud guardada = adapter.save(solicitudDominio);
-        
-        // Recuperamos usando el ADAPTADOR (Cubre el método findById del adaptador)
-        Optional<Solicitud> recuperada = adapter.findById(guardada.getId());
-        
-        // 3. ASSERT: Comprobamos que el ciclo completo funciona
-        assertTrue(recuperada.isPresent(), "El adaptador debería encontrar la solicitud");
-        assertEquals(Estado.ABIERTA, recuperada.get().getEstado());
-        assertEquals(guardada.getId(), recuperada.get().getId());
+        assertThrows(RuntimeException.class, () -> adapter.save(solicitud));
+    }
+
+    @Test
+    void debe_retornar_vacio_si_la_solicitud_no_existe() {
+        Optional<Solicitud> recuperada = adapter.findById(888L);
+        assertTrue(recuperada.isEmpty());
     }
 }
