@@ -31,7 +31,6 @@ public class SolicitudService {
                 
         cliente.crearSolicitud(); 
 
-        // Usamos el constructor completo porque ya no hay setters
         Solicitud nuevaSolicitud = new Solicitud(
             null, 
             cliente, 
@@ -73,6 +72,30 @@ public class SolicitudService {
         Tecnico tecnico = solicitud.getTecnicoAsignado();
         if (tecnico != null) {
             tecnico.finalizarTarea();
+            tecnicoRepository.save(tecnico);
+        }
+
+        solicitudRepository.save(solicitud);
+    }
+
+    // AÑADIMOS SOLO ESTO PARA QUE EL TEST COMPILE Y SUBA EL COVERAGE
+    public void reabrirSolicitud(Long solicitudId) {
+        Solicitud solicitud = solicitudRepository.findById(solicitudId)
+                .orElseThrow(() -> new IllegalArgumentException("La solicitud no existe"));
+
+        solicitud.reabrir();
+
+        // Al reabrir, el cliente vuelve a tener una solicitud activa
+        Cliente cliente = solicitud.getCliente();
+        if (cliente != null) {
+            cliente.crearSolicitud(); 
+            clienteRepository.save(cliente);
+        }
+
+        // El técnico vuelve a tener carga de trabajo
+        Tecnico tecnico = solicitud.getTecnicoAsignado();
+        if (tecnico != null) {
+            tecnico.incrementarCarga();
             tecnicoRepository.save(tecnico);
         }
 
