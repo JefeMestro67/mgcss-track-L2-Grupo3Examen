@@ -79,4 +79,25 @@ class SolicitudTest {
         assertEquals(Estado.EN_PROCESO, solicitud.getEstado());
         assertNull(solicitud.getFechaCierre());
     }
+    
+    @Test
+    void debe_registrar_el_historial_de_cambios_de_estado() {
+        // 1. Crear solicitud (Estado inicial: ABIERTA)
+        Solicitud solicitud = new Solicitud(1L, null, "Test historial", LocalDateTime.now(), Estado.ABIERTA, null, null);
+        
+        // 2. Transición 1: Asignar técnico (ABIERTA -> EN_PROCESO)
+        Tecnico tecnico = new Tecnico(1L, "Luis", "Soporte", true, 0);
+        solicitud.asignarTecnico(tecnico);
+        
+        // 3. Transición 2: Cerrar (EN_PROCESO -> CERRADA)
+        solicitud.cerrar();
+        
+        // 4. Transición 3: Reabrir (CERRADA -> EN_PROCESO)
+        solicitud.reabrir();
+        
+        // 5. Verificación (Este método getHistorial aún no existe, dará error en rojo)
+        assertEquals(3, solicitud.getHistorial().size());
+        assertEquals(Estado.ABIERTA, solicitud.getHistorial().get(0).getEstadoAnterior());
+        assertEquals(Estado.EN_PROCESO, solicitud.getHistorial().get(0).getEstadoNuevo());
+    }
 }
