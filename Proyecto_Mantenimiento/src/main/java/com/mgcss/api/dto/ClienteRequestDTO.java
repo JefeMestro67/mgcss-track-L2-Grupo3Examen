@@ -1,20 +1,19 @@
 package com.mgcss.api.dto;
 
 public class ClienteRequestDTO {
-    private String nombre;
-    private String email;
-
-    public ClienteRequestDTO() {
-    }
+    private final String nombre;
+    private final String email;
 
     public ClienteRequestDTO(String nombre, String email) {
         this.nombre = nombre;
         this.email = email;
     }
 
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
+    public String getNombre() { 
+        return nombre; 
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public String getEmail() { 
+        return email; 
+    }
 }
