@@ -1,6 +1,7 @@
 package com.mgcss.api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mgcss.api.dto.EstadoChangeDTO;
 import com.mgcss.api.dto.SolicitudRequestDTO;
 import com.mgcss.domain.*;
 import com.mgcss.infrastructure.SolicitudRepository;
@@ -141,5 +142,19 @@ public class SolicitudControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1L))
                 .andExpect(jsonPath("$.length()").value(1));
+    }
+    @Test
+    void debeMapearEstadoChangeDtoCorrectamente() {
+        java.time.LocalDateTime fecha = java.time.LocalDateTime.now();
+        
+        EstadoChangeDTO dto = new EstadoChangeDTO(
+            com.mgcss.domain.Estado.ABIERTA, 
+            com.mgcss.domain.Estado.EN_PROCESO, 
+            fecha
+        );
+
+        org.junit.jupiter.api.Assertions.assertEquals(com.mgcss.domain.Estado.ABIERTA, dto.getEstadoAnterior());
+        org.junit.jupiter.api.Assertions.assertEquals(com.mgcss.domain.Estado.EN_PROCESO, dto.getEstadoNuevo());
+        org.junit.jupiter.api.Assertions.assertEquals(fecha, dto.getFechaCambio());
     }
 }
