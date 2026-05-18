@@ -5,7 +5,6 @@ import com.mgcss.api.dto.SolicitudResponseDTO;
 import com.mgcss.api.mapper.SolicitudApiMapper;
 import com.mgcss.domain.Solicitud;
 import com.mgcss.services.SolicitudService;
-import com.mgcss.infrastructure.SolicitudRepository;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +18,9 @@ import java.util.stream.Collectors;
 public class SolicitudController {
 
     private final SolicitudService solicitudService;
-    private final SolicitudRepository solicitudRepository;
 
-    public SolicitudController(SolicitudService solicitudService, SolicitudRepository solicitudRepository) {
+    public SolicitudController(SolicitudService solicitudService) {
         this.solicitudService = solicitudService;
-        this.solicitudRepository = solicitudRepository;
     }
 
     // Paso 2.2: POST → crear solicitud
@@ -36,12 +33,11 @@ public class SolicitudController {
     // Paso 2.2: GET → consultar solicitud por ID
     @GetMapping("/{id}")
     public ResponseEntity<SolicitudResponseDTO> consultar(@PathVariable Long id) {
-        Solicitud solicitud = solicitudRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("La solicitud no existe"));
+        Solicitud solicitud = solicitudService.buscarPorId(id);
         return ResponseEntity.ok(SolicitudApiMapper.toResponseDTO(solicitud));
     }
 
-    // Paso 2.2: PUT → asignar técnico (Cambiará estado a EN_PROCESO internamente)
+    // Paso 2.2: PUT → asignar técnico
     @PutMapping("/{id}/tecnico")
     public ResponseEntity<Void> asignarTecnico(@PathVariable Long id, @RequestParam Long tecnicoId) {
         solicitudService.asignarTecnico(id, tecnicoId);
@@ -65,7 +61,7 @@ public class SolicitudController {
     // Enunciado obligatorio: Listar solicitudes
     @GetMapping
     public ResponseEntity<List<SolicitudResponseDTO>> listar() {
-        List<SolicitudResponseDTO> lista = solicitudRepository.findAll().stream()
+        List<SolicitudResponseDTO> lista = solicitudService.listarTodas().stream()
                 .map(SolicitudApiMapper::toResponseDTO)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(lista);

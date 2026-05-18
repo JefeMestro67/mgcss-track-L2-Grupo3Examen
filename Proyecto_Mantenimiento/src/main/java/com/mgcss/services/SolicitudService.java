@@ -9,6 +9,7 @@ import com.mgcss.infrastructure.SolicitudRepository;
 import com.mgcss.infrastructure.TecnicoRepository;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class SolicitudService {
@@ -100,5 +101,13 @@ public class SolicitudService {
         }
 
         solicitudRepository.save(solicitud);
+    }
+    public Solicitud buscarPorId(Long id) {
+        return solicitudRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("La solicitud no existe"));
+    }
+
+    public List<Solicitud> listarTodas() {
+        return solicitudRepository.findAll();
     }
 }
