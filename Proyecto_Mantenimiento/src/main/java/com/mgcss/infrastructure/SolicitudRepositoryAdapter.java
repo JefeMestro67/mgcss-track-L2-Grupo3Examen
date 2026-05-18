@@ -65,6 +65,13 @@ public class SolicitudRepositoryAdapter implements SolicitudRepository {
     public Optional<Solicitud> findById(Long id) {
         return jpaRepository.findById(id).map(this::mapToDomain);
     }
+    
+    @Override
+    public List<Solicitud> findAll() {
+        return jpaRepository.findAll().stream()
+                .map(this::mapToDomain)
+                .collect(Collectors.toList());
+    }
 
     private Solicitud mapToDomain(SolicitudEntity entity) {
         Cliente clienteDominio = null;

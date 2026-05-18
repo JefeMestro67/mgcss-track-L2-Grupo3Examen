@@ -1,94 +1,66 @@
 package com.mgcss.api.dto;
 
+import com.mgcss.domain.Estado;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class SolicitudResponseDTO {
-
     private Long id;
+    private Long clienteId;
+    private String clienteNombre;
     private String descripcion;
-    private String estado;
-    private String nombreCliente;
-    private String nombreTecnico;
     private LocalDateTime fechaCreacion;
-    private int totalCambiosEstado;
+    private Estado estado;
+    private Long tecnicoId;
+    private String tecnicoNombre;
+    private LocalDateTime fechaCierre;
+    private List<EstadoChangeDTO> historial;
 
-    public SolicitudResponseDTO() {
-    }
+    public SolicitudResponseDTO() {}
 
-    public SolicitudResponseDTO(Long id, String descripcion, String estado, 
-                                String nombreCliente, String nombreTecnico, 
-                                LocalDateTime fechaCreacion, int totalCambiosEstado) {
+    public SolicitudResponseDTO(Long id, Long clienteId, String clienteNombre, String descripcion, 
+                                LocalDateTime fechaCreacion, Estado estado, Long tecnicoId, 
+                                String tecnicoNombre, LocalDateTime fechaCierre, List<EstadoChangeDTO> historial) {
         this.id = id;
+        this.clienteId = clienteId;
+        this.clienteNombre = clienteNombre;
         this.descripcion = descripcion;
-        this.estado = estado;
-        this.nombreCliente = nombreCliente;
-        this.nombreTecnico = nombreTecnico;
         this.fechaCreacion = fechaCreacion;
-        this.totalCambiosEstado = totalCambiosEstado;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
         this.estado = estado;
+        this.tecnicoId = tecnicoId;
+        this.tecnicoNombre = tecnicoNombre;
+        this.fechaCierre = fechaCierre;
+        this.historial = historial;
     }
 
-    public String getNombreCliente() {
-        return nombreCliente;
-    }
+    // GETTERS Y SETTERS
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setNombreCliente(String nombreCliente) {
-        this.nombreCliente = nombreCliente;
-    }
+    public Long getClienteId() { return clienteId; }
+    public void setClienteId(Long clienteId) { this.clienteId = clienteId; }
 
-    public String getNombreTecnico() {
-        return nombreTecnico;
-    }
+    public String getClienteNombre() { return clienteNombre; }
+    public void setClienteNombre(String clienteNombre) { this.clienteNombre = clienteNombre; }
 
-    public void setNombreTecnico(String nombreTecnico) {
-        this.nombreTecnico = nombreTecnico;
-    }
+    public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    public LocalDateTime getFechaCreacion() {
-        return fechaCreacion;
-    }
+    public LocalDateTime getFechaCreacion() { return fechaCreacion; }
+    public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
 
-    public void setFechaCreacion(LocalDateTime fechaCreacion) {
-        this.fechaCreacion = fechaCreacion;
-    }
+    public Estado getEstado() { return estado; }
+    public void setEstado(Estado estado) { this.estado = estado; }
 
-    public int getTotalCambiosEstado() {
-        return totalCambiosEstado;
-    }
+    public Long getTecnicoId() { return tecnicoId; }
+    public void setTecnicoId(Long tecnicoId) { this.tecnicoId = tecnicoId; }
 
-    public void setTotalCambiosEstado(int totalCambiosEstado) {
-        this.totalCambiosEstado = totalCambiosEstado;
-    }
+    public String getTecnicoNombre() { return tecnicoNombre; }
+    public void setTecnicoNombre(String tecnicoNombre) { this.tecnicoNombre = tecnicoNombre; }
 
-    @Override
-    public String toString() {
-        return "SolicitudResponseDTO{" +
-                "id=" + id +
-                ", estado='" + estado + '\'' +
-                ", nombreCliente='" + nombreCliente + '\'' +
-                '}';
-    }
+    public LocalDateTime getFechaCierre() { return fechaCierre; }
+    public void setFechaCierre(LocalDateTime fechaCierre) { this.fechaCierre = fechaCierre; }
+
+    public List<EstadoChangeDTO> getHistorial() { return historial; }
+    public void setHistorial(List<EstadoChangeDTO> historial) { this.historial = historial; }
 }
