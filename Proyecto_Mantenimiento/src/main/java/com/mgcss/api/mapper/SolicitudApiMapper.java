@@ -10,38 +10,49 @@ import java.util.stream.Collectors;
 public class SolicitudApiMapper {
 
     private SolicitudApiMapper() {
-        // Constructor privado para evitar que SonarCloud proteste en clases utilitarias
     }
 
     public static SolicitudResponseDTO toResponseDTO(Solicitud solicitud) {
         if (solicitud == null) return null;
 
-        SolicitudResponseDTO dto = new SolicitudResponseDTO();
-        dto.setId(solicitud.getId());
-        dto.setDescripcion(solicitud.getDescripcion());
-        dto.setFechaCreacion(solicitud.getFechaCreacion());
-        dto.setEstado(solicitud.getEstado());
-        dto.setFechaCierre(solicitud.getFechaCierre());
-
+        // 1. Extraer datos del cliente si existe
+        Long clienteId = null;
+        String clienteNombre = null;
         if (solicitud.getCliente() != null) {
-            dto.setClienteId(solicitud.getCliente().getId());
-            dto.setClienteNombre(solicitud.getCliente().getNombre());
+            clienteId = solicitud.getCliente().getId();
+            clienteNombre = solicitud.getCliente().getNombre();
         }
 
+        // 2. Extraer datos del técnico si existe
+        Long tecnicoId = null;
+        String tecnicoNombre = null;
         if (solicitud.getTecnicoAsignado() != null) {
-            dto.setTecnicoId(solicitud.getTecnicoAsignado().getId());
-            dto.setTecnicoNombre(solicitud.getTecnicoAsignado().getNombre());
+            tecnicoId = solicitud.getTecnicoAsignado().getId();
+            tecnicoNombre = solicitud.getTecnicoAsignado().getNombre();
         }
 
+        // 3. Mapear el historial de estados
+        List<EstadoChangeDTO> historialDto;
         if (solicitud.getHistorial() != null) {
-            List<EstadoChangeDTO> historialDto = solicitud.getHistorial().stream()
+            historialDto = solicitud.getHistorial().stream()
                 .map(ch -> new EstadoChangeDTO(ch.getEstadoAnterior(), ch.getEstadoNuevo(), ch.getFechaCambio()))
                 .collect(Collectors.toList());
-            dto.setHistorial(historialDto);
         } else {
-            dto.setHistorial(new ArrayList<>());
+            historialDto = new ArrayList<>();
         }
 
-        return dto;
+        // 4. Construimos el DTO inmutable de un solo golpe usando su constructor
+        return new SolicitudResponseDTO(
+            solicitud.getId(),
+            clienteId,
+            clienteNombre,
+            solicitud.getDescripcion(),
+            solicitud.getFechaCreacion(),
+            solicitud.getEstado(),
+            tecnicoId,
+            tecnicoNombre,
+            solicitud.getFechaCierre(),
+            historialDto
+        );
     }
 }

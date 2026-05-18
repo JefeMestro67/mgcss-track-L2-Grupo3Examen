@@ -16,8 +16,6 @@ public class SolicitudResponseDTO {
     private LocalDateTime fechaCierre;
     private List<EstadoChangeDTO> historial;
 
-    public SolicitudResponseDTO() {}
-
     public SolicitudResponseDTO(Long id, Long clienteId, String clienteNombre, String descripcion, 
                                 LocalDateTime fechaCreacion, Estado estado, Long tecnicoId, 
                                 String tecnicoNombre, LocalDateTime fechaCierre, List<EstadoChangeDTO> historial) {
@@ -33,34 +31,23 @@ public class SolicitudResponseDTO {
         this.historial = historial;
     }
 
-    // GETTERS Y SETTERS
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
 
     public Long getClienteId() { return clienteId; }
-    public void setClienteId(Long clienteId) { this.clienteId = clienteId; }
 
     public String getClienteNombre() { return clienteNombre; }
-    public void setClienteNombre(String clienteNombre) { this.clienteNombre = clienteNombre; }
 
     public String getDescripcion() { return descripcion; }
-    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
     public LocalDateTime getFechaCreacion() { return fechaCreacion; }
-    public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
 
     public Estado getEstado() { return estado; }
-    public void setEstado(Estado estado) { this.estado = estado; }
 
     public Long getTecnicoId() { return tecnicoId; }
-    public void setTecnicoId(Long tecnicoId) { this.tecnicoId = tecnicoId; }
 
     public String getTecnicoNombre() { return tecnicoNombre; }
-    public void setTecnicoNombre(String tecnicoNombre) { this.tecnicoNombre = tecnicoNombre; }
 
     public LocalDateTime getFechaCierre() { return fechaCierre; }
-    public void setFechaCierre(LocalDateTime fechaCierre) { this.fechaCierre = fechaCierre; }
 
     public List<EstadoChangeDTO> getHistorial() { return historial; }
-    public void setHistorial(List<EstadoChangeDTO> historial) { this.historial = historial; }
 }
