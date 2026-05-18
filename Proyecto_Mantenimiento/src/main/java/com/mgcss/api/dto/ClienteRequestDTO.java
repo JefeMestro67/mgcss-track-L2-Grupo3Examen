@@ -1,16 +1,19 @@
 package com.mgcss.api.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Datos requeridos para registrar un nuevo cliente en el sistema")
 public class ClienteRequestDTO {
     
-    // Quitamos 'final' para que Jackson pueda rellenar los campos tras instanciar
+    @Schema(description = "Nombre completo del cliente", example = "Juan Perez")
     private String nombre;
+
+    @Schema(description = "Dirección de correo electrónico de contacto", example = "juan.perez@mgcss.com")
     private String email;
 
-    // CONSTRUCTOR VACÍO OBLIGATORIO: Exigido por Spring/Jackson para la deserialización del JSON
     public ClienteRequestDTO() {
     }
 
-    // Constructor completo (el que ya usáis en vuestro código)
     public ClienteRequestDTO(String nombre, String email) {
         this.nombre = nombre;
         this.email = email;
