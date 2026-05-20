@@ -11,30 +11,19 @@ public class TecnicoResponseDTO extends BaseResponseDTO {
     @Schema(description = "Número de incidencias o tareas activas asignadas actualmente al técnico", example = "2")
     private final int cargaTrabajo;
 
-    // Constructor vacío requerido para Jackson y serialización
+    // Constructor vacío seguro para Jackson
     public TecnicoResponseDTO() {
-        super(null, null, false);
-        this.especialidad = null;
+        super(0L, "", false);
+        this.especialidad = "";
         this.cargaTrabajo = 0;
     }
 
-    public TecnicoResponseDTO(
-            Long id,
-            String nombre,
-            String especialidad,
-            boolean activo,
-            int cargaTrabajo
-    ) {
+    public TecnicoResponseDTO(Long id, String nombre, String especialidad, boolean activo, int cargaTrabajo) {
         super(id, nombre, activo);
         this.especialidad = especialidad;
         this.cargaTrabajo = cargaTrabajo;
     }
 
-    public String getEspecialidad() {
-        return especialidad;
-    }
-
-    public int getCargaTrabajo() {
-        return cargaTrabajo;
-    }
+    public String getEspecialidad() { return especialidad; }
+    public int getCargaTrabajo() { return cargaTrabajo; }
 }

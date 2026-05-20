@@ -15,37 +15,22 @@ public class ClienteResponseDTO extends BaseResponseDTO {
     @Schema(description = "Número total de solicitudes que el cliente mantiene abiertas simultáneamente", example = "1")
     private final int solicitudesAbiertas;
 
-    // Constructor vacío para Jackson / Frameworks
+    // Constructor vacío seguro para Jackson
     public ClienteResponseDTO() {
-        super(null, null, false);
-        this.email = null;
+        super(0L, "", false);
+        this.email = "";
         this.tipoCliente = null;
         this.solicitudesAbiertas = 0;
     }
 
-    public ClienteResponseDTO(
-            Long id,
-            String nombre,
-            String email,
-            TipoCliente tipoCliente,
-            boolean activo,
-            int solicitudesAbiertas
-    ) {
+    public ClienteResponseDTO(Long id, String nombre, String email, TipoCliente tipoCliente, boolean activo, int solicitudesAbiertas) {
         super(id, nombre, activo);
         this.email = email;
         this.tipoCliente = tipoCliente;
         this.solicitudesAbiertas = solicitudesAbiertas;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public TipoCliente getTipoCliente() {
-        return tipoCliente;
-    }
-
-    public int getSolicitudesAbiertas() {
-        return solicitudesAbiertas;
-    }
+    public String getEmail() { return email; }
+    public TipoCliente getTipoCliente() { return tipoCliente; }
+    public int getSolicitudesAbiertas() { return solicitudesAbiertas; }
 }

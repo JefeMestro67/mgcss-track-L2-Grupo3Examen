@@ -12,15 +12,7 @@ public abstract class BaseResponseDTO {
         this.activo = activo;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public boolean isActivo() {
-        return activo;
-    }
+    public Long getId() { return id; }
+    public String getNombre() { return nombre; }
+    public boolean isActivo() { return activo; }
 }
