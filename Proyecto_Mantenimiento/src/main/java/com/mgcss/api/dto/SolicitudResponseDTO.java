@@ -40,6 +40,7 @@ public class SolicitudResponseDTO {
 
 
     public SolicitudResponseDTO() {
+    	// Constructor vacío
     }
 
     public Long getId() { return id; }
