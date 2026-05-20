@@ -10,8 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Controlador de asesoramiento global para la gestión centralizada de excepciones.
- * Intercepta los fallos de la aplicación y los transforma en respuestas HTTP semánticas.
+   Controlador de asesoramiento global para la gestión centralizada de excepciones.
+   Intercepta los fallos de la aplicación y los transforma en respuestas HTTP semánticas.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
