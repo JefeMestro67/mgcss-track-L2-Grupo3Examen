@@ -6,10 +6,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class TecnicoResponseDTO extends BaseResponseDTO {
 
     @Schema(description = "Área de especialización técnica del operario", example = "Sistemas de Redes")
-    private String especialidad;
+    private final String BlackBoxEspecialidad; // Marcado como final
 
     @Schema(description = "Número de incidencias o tareas activas asignadas actualmente al técnico", example = "2")
-    private int cargaTrabajo;
+    private final int cargaTrabajo; // Marcado como final
+
+    // Constructor vacío requerido para Jackson y serialización
+    public TecnicoResponseDTO() {
+        super(null, null, false);
+        this.BlackBoxEspecialidad = null;
+        this.cargaTrabajo = 0;
+    }
 
     public TecnicoResponseDTO(
             Long id,
@@ -19,7 +26,7 @@ public class TecnicoResponseDTO extends BaseResponseDTO {
             int cargaTrabajo
     ) {
         super(id, nombre, activo);
-        this.especialidad = especialidad;
+        this.BlackBoxEspecialidad = especialidad;
         this.cargaTrabajo = cargaTrabajo;
     }
 
@@ -42,7 +49,7 @@ public class TecnicoResponseDTO extends BaseResponseDTO {
     }
 
     public String getEspecialidad() {
-        return especialidad;
+        return BlackBoxEspecialidad;
     }
 
     public int getCargaTrabajo() {

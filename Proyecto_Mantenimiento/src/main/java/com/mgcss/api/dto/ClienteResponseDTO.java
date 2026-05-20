@@ -7,13 +7,21 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class ClienteResponseDTO extends BaseResponseDTO {
 
     @Schema(description = "Dirección de correo electrónico del cliente", example = "juan.perez@mgcss.com")
-    private String email;
+    private final String email;
 
     @Schema(description = "Tipo o categoría de prioridad asignada al cliente dentro del dominio")
-    private TipoCliente tipoCliente;
+    private final TipoCliente tipoCliente;
 
     @Schema(description = "Número total de solicitudes que el cliente mantiene abiertas simultáneamente", example = "1")
-    private int solicitudesAbiertas;
+    private final int solicitudesAbiertas;
+
+    // Constructor vacío para Jackson / Frameworks
+    public ClienteResponseDTO() {
+        super(null, null, false);
+        this.email = null;
+        this.tipoCliente = null;
+        this.solicitudesAbiertas = 0;
+    }
 
     public ClienteResponseDTO(
             Long id,

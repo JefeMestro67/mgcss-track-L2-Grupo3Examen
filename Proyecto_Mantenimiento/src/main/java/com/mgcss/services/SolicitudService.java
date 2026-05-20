@@ -8,6 +8,8 @@ import com.mgcss.infrastructure.ClienteRepository;
 import com.mgcss.infrastructure.SolicitudRepository;
 import com.mgcss.infrastructure.TecnicoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; //  Importación crucial
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,6 +28,7 @@ public class SolicitudService {
         this.clienteRepository = clienteRepository;
     }
 
+    @Transactional // Asegura que el cliente y la solicitud se guardan juntos o nada
     public Solicitud crearSolicitud(Long clienteId, String descripcion) {
         Cliente cliente = clienteRepository.findById(clienteId)
                 .orElseThrow(() -> new IllegalArgumentException("El cliente no existe"));
@@ -46,6 +49,7 @@ public class SolicitudService {
         return solicitudRepository.save(nuevaSolicitud);
     }
 
+    @Transactional // Evita desajustes si falla el cambio de estado de la solicitud
     public void asignarTecnico(Long solicitudId, Long tecnicoId) {
         Solicitud solicitud = solicitudRepository.findById(solicitudId)
                 .orElseThrow(() -> new IllegalArgumentException("La solicitud no existe"));
@@ -60,6 +64,7 @@ public class SolicitudService {
         solicitudRepository.save(solicitud);
     }
     
+    @Transactional // Atomicidad pura para liberar cliente, técnico e incidencia a la vez
     public void cerrarSolicitud(Long solicitudId) {
         Solicitud solicitud = solicitudRepository.findById(solicitudId)
                 .orElseThrow(() -> new IllegalArgumentException("La solicitud no existe"));
@@ -79,10 +84,16 @@ public class SolicitudService {
         solicitudRepository.save(solicitud);
     }
 
-    // AÑADIMOS SOLO ESTO PARA QUE EL TEST COMPILE Y SUBA EL COVERAGE
+    @Transactional // Control transaccional y validación de seguridad
     public void reabrirSolicitud(Long solicitudId) {
         Solicitud solicitud = solicitudRepository.findById(solicitudId)
                 .orElseThrow(() -> new IllegalArgumentException("La solicitud no existe"));
+
+        // Al verificar el técnico asignado antes de mutar nada
+        Tecnico tecnico = solicitud.getTecnicoAsignado();
+        if (tecnico != null && !tecnico.isActivo()) {
+            throw new IllegalStateException("No se puede reabrir la solicitud porque el técnico asignado está inactivo");
+        }
 
         solicitud.reabrir();
 
@@ -93,8 +104,7 @@ public class SolicitudService {
             clienteRepository.save(cliente);
         }
 
-        // El técnico vuelve a tener carga de trabajo
-        Tecnico tecnico = solicitud.getTecnicoAsignado();
+        // El técnico vuelve a tener carga de trabajo de forma segura
         if (tecnico != null) {
             tecnico.incrementarCarga();
             tecnicoRepository.save(tecnico);
@@ -102,6 +112,7 @@ public class SolicitudService {
 
         solicitudRepository.save(solicitud);
     }
+
     public Solicitud buscarPorId(Long id) {
         return solicitudRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("La solicitud no existe"));

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/clientes")
-@Tag(name = "Clientes", description = "Controlador para el registro de clientes y la gestión de su estado en el sistema")
+@Tag(name = "Clientes", description = "Controlador restringido para el alta de clientes y la gestión de su estado administrativo")
 public class ClienteController {
 
     private final ClienteService clienteService;
@@ -26,11 +26,10 @@ public class ClienteController {
     }
 
     @PostMapping
-    @Operation(summary = "Registrar un nuevo cliente", description = "Crea un cliente de manera persistente en el sistema utilizando su nombre y dirección de correo electrónico.")
+    @Operation(summary = "Registrar un nuevo cliente", description = "Crea un cliente de manera persistente en el sistema utilizando su nombre y dirección de correo electrónico. Nace con perfil STANDARD por defecto.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Cliente registrado con éxito"),
-        @ApiResponse(responseCode = "400", description = "Datos de entrada incorrectos o formato de email inválido"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+        @ApiResponse(responseCode = "400", description = "Datos de entrada incorrectos o formato de email inválido")
     })
     public ResponseEntity<ClienteResponseDTO> crear(@RequestBody ClienteRequestDTO request) {
         Cliente nuevo = clienteService.crearCliente(request.getNombre(), request.getEmail());
@@ -38,28 +37,15 @@ public class ClienteController {
     }
 
     @PutMapping("/{id}/desactivar")
-    @Operation(summary = "Desactivar un cliente", description = "Cambia el estado del cliente a inactivo, lo cual restringe ciertas operaciones comerciales dentro del sistema.")
+    @Operation(summary = "Desactivar un cliente", description = "Cambia el estado del cliente a inactivo. La operación fallará con un error de negocio si el cliente tiene solicitudes actualmente abiertas.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Cliente desactivado con éxito"),
-        @ApiResponse(responseCode = "404", description = "El cliente con el ID especificado no existe"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor o incumplimiento de regla de negocio")
+        @ApiResponse(responseCode = "400", description = "Regla de negocio violada (el cliente posee incidencias abiertas activas)"),
+        @ApiResponse(responseCode = "404", description = "El cliente con el ID especificado no existe")
     })
     public ResponseEntity<Void> desactivar(
             @Parameter(description = "ID único del cliente a dar de baja", example = "1") @PathVariable Long id) {
         clienteService.desactivarCliente(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PutMapping("/{id}/finalizar-solicitud")
-    @Operation(summary = "Finalizar una solicitud", description = "Reduce de manera automática el contador numérico de solicitudes que el cliente mantiene abiertas simultáneamente.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Contador de solicitudes decrementado con éxito"),
-        @ApiResponse(responseCode = "400", description = "Operación no permitida (ej. el cliente ya tiene 0 solicitudes abiertas)"),
-        @ApiResponse(responseCode = "404", description = "El cliente con el ID especificado no existe")
-    })
-    public ResponseEntity<Void> finalizarSolicitud(
-            @Parameter(description = "ID del cliente que concluye una de sus incidencias", example = "1") @PathVariable Long id) {
-        clienteService.finalizarSolicitud(id);
         return ResponseEntity.noContent().build();
     }
 }

@@ -3,40 +3,55 @@ package com.mgcss.api.dto;
 import com.mgcss.domain.Estado;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Schema(description = "Información detallada de la solicitud devuelta por el sistema")
 public class SolicitudResponseDTO {
 
     @Schema(description = "Identificador único de la solicitud generado por la base de datos", example = "1")
-    private Long id;
+    private final Long id;
 
     @Schema(description = "ID del cliente asociado a la solicitud", example = "1")
-    private Long clienteId;
+    private final Long clienteId;
 
     @Schema(description = "Nombre completo del cliente", example = "Juan Perez")
-    private String clienteNombre;
+    private final String clienteNombre;
 
     @Schema(description = "Texto explicativo con el detalle del problema técnico", example = "El servidor de base de datos no responde")
-    private String descripcion;
+    private final String descripcion;
 
     @Schema(description = "Fecha y hora exacta en la que se registró la incidencia")
-    private LocalDateTime fechaCreacion;
+    private final LocalDateTime fechaCreacion;
 
     @Schema(description = "Estado actual del ciclo de vida de la solicitud")
-    private Estado estado;
+    private final Estado estado;
 
     @Schema(description = "ID del técnico asignado para resolver la incidencia", example = "2")
-    private Long tecnicoId;
+    private final Long tecnicoId;
 
     @Schema(description = "Nombre completo del técnico asignado", example = "Carlos Gomez")
-    private String tecnicoNombre;
+    private final String tecnicoNombre;
 
     @Schema(description = "Fecha y hora en la que se cerró la solicitud si procede")
-    private LocalDateTime fechaCierre;
+    private final LocalDateTime fechaCierre;
 
     @Schema(description = "Historial completo con todas las transiciones de estado sufridas por la solicitud")
-    private List<EstadoChangeDTO> historial;
+    private final List<EstadoChangeDTO> historial;
+
+    // Constructor vacío requerido para Jackson y Frameworks de serialización
+    public SolicitudResponseDTO() {
+        this.id = null;
+        this.clienteId = null;
+        this.clienteNombre = null;
+        this.descripcion = null;
+        this.fechaCreacion = null;
+        this.estado = null;
+        this.tecnicoId = null;
+        this.tecnicoNombre = null;
+        this.fechaCierre = null;
+        this.historial = Collections.emptyList();
+    }
 
     public SolicitudResponseDTO(
             Long id,
@@ -59,7 +74,8 @@ public class SolicitudResponseDTO {
         this.tecnicoId = tecnicoId;
         this.tecnicoNombre = tecnicoNombre;
         this.fechaCierre = fechaCierre;
-        this.historial = historial;
+        // Evitamos fugas de mutabilidad encapsulando la lista externa
+        this.historial = historial != null ? List.copyOf(historial) : Collections.emptyList();
     }
 
     public Long getId() { return id; }

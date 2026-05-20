@@ -28,6 +28,7 @@ public class TecnicoControllerTest {
     @MockBean
     private TecnicoService tecnicoService;
 
+    // 1. Único endpoint expuesto y testeado en el controlador de técnicos
     @Test
     void cuandoDesactivarTecnico_entoncesDevuelveNoContent() throws Exception {
         Mockito.doNothing().when(tecnicoService).desactivarTecnico(1L);
@@ -36,22 +37,7 @@ public class TecnicoControllerTest {
                 .andExpect(status().isNoContent());
     }
 
-    @Test
-    void cuandoAsignarTareaATecnico_entoncesDevuelveNoContent() throws Exception {
-        Mockito.doNothing().when(tecnicoService).asignarNuevaTarea(1L);
-
-        mockMvc.perform(put("/api/tecnicos/1/asignar-tarea"))
-                .andExpect(status().isNoContent());
-    }
-
-    @Test
-    void cuandoFinalizarTareaDeTecnico_entoncesDevuelveNoContent() throws Exception {
-        Mockito.doNothing().when(tecnicoService).finalizarTarea(1L);
-
-        mockMvc.perform(put("/api/tecnicos/1/finalizar-tarea"))
-                .andExpect(status().isNoContent());
-    }
-
+    // 2. Test del Mapper (Mantenido para no perder coverage de la capa API)
     @Test
     void debeMapearTecnicoAResponseDtoCorrectamente() {
         Tecnico tecnicoDominio = new Tecnico(1L, "Carlos", "Sistemas", true, 3);
@@ -68,6 +54,7 @@ public class TecnicoControllerTest {
         assertNull(TecnicoApiMapper.toResponseDTO(null));
     }
 
+    // 3. Test del DTO (Mantenido para verificar mutabilidad/constructores del contrato)
     @Test
     void debeManipularAtributosDeTecnicoRequestDto() {
         TecnicoRequestDTO requestDto = new TecnicoRequestDTO();
