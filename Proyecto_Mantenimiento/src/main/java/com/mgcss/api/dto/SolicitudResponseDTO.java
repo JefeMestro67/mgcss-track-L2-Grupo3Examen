@@ -51,8 +51,8 @@ public class SolicitudResponseDTO {
     public String getClienteNombre() { return clienteNombre; }
     public void setClienteNombre(String clienteNombre) { this.clienteNombre = clienteNombre; }
 
-    public String getMainDescripcion() { return descripcion; }
     public String getDescripcion() { return descripcion; }
+    public String getMainDescripcion() { return getDescripcion(); }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
     public LocalDateTime getFechaCreacion() { return fechaCreacion; }
