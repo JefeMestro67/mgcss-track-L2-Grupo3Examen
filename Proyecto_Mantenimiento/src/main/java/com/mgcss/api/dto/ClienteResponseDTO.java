@@ -37,24 +37,6 @@ public class ClienteResponseDTO extends BaseResponseDTO {
         this.solicitudesAbiertas = solicitudesAbiertas;
     }
 
-    @Override
-    @Schema(description = "Identificador único del cliente generado por la base de datos", example = "1")
-    public Long getId() {
-        return super.getId();
-    }
-
-    @Override
-    @Schema(description = "Nombre completo del cliente registrado", example = "Juan Perez")
-    public String getNombre() {
-        return super.getNombre();
-    }
-
-    @Override
-    @Schema(description = "Estado de habilitación del cliente en el sistema", example = "true")
-    public boolean isActivo() {
-        return super.isActivo();
-    }
-
     public String getEmail() {
         return email;
     }
