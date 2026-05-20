@@ -51,4 +51,56 @@ class TecnicoServiceTest {
         });
         verify(mockRepoTecnico, never()).save(any());
     }
+
+    @Test
+    void debe_crear_tecnico_exitosamente_cuando_los_datos_son_validos() {
+        String nombre = "Carlos Gomez";
+        String especialidad = "Sistemas de Redes";
+        
+        when(mockRepoTecnico.save(any(Tecnico.class))).thenAnswer(invocation -> {
+            Tecnico t = invocation.getArgument(0);
+            return new Tecnico(1L, t.getNombre(), t.getEspecialidad(), t.isActivo(), t.getCargaTrabajo());
+        });
+
+        Tecnico resultado = servicio.crearTecnico(nombre, especialidad);
+
+        assertNotNull(resultado);
+        assertEquals(1L, resultado.getId());
+        assertEquals(nombre, resultado.getNombre());
+        assertEquals(especialidad, resultado.getEspecialidad());
+        assertTrue(resultado.isActivo());
+        assertEquals(0, resultado.getCargaTrabajo());
+        
+        verify(mockRepoTecnico, times(1)).save(any(Tecnico.class));
+    }
+
+    @Test
+    void debe_lanzar_excepcion_cuando_el_nombre_es_nulo_o_vacio() {
+        IllegalArgumentException exVacio = assertThrows(IllegalArgumentException.class, () -> {
+            servicio.crearTecnico("   ", "Soporte");
+        });
+        assertEquals("El nombre del técnico es obligatorio", exVacio.getMessage());
+
+        IllegalArgumentException exNulo = assertThrows(IllegalArgumentException.class, () -> {
+            servicio.crearTecnico(null, "Soporte");
+        });
+        assertEquals("El nombre del técnico es obligatorio", exNulo.getMessage());
+        
+        verify(mockRepoTecnico, never()).save(any());
+    }
+
+    @Test
+    void debe_lanzar_excepcion_cuando_la_especialidad_es_nulo_o_vacio() {
+        IllegalArgumentException exVacio = assertThrows(IllegalArgumentException.class, () -> {
+            servicio.crearTecnico("Carlos", "");
+        });
+        assertEquals("La especialidad del técnico es obligatoria", exVacio.getMessage());
+
+        IllegalArgumentException exNulo = assertThrows(IllegalArgumentException.class, () -> {
+            servicio.crearTecnico("Carlos", null);
+        });
+        assertEquals("La especialidad del técnico es obligatoria", exNulo.getMessage());
+        
+        verify(mockRepoTecnico, never()).save(any());
+    }
 }

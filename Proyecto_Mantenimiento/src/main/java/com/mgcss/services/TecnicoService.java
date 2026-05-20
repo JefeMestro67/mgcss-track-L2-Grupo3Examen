@@ -16,6 +16,25 @@ public class TecnicoService {
         this.tecnicoRepository = tecnicoRepository;
     }
 
+    //  NUEBO MÉTODO AGREGADO PARA EL PASO 2.2
+    @Transactional
+    public Tecnico crearTecnico(String nombre, String especialidad) {
+        // 1. Validaciones básicas en la capa de aplicación
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del técnico es obligatorio");
+        }
+        if (especialidad == null || especialidad.trim().isEmpty()) {
+            throw new IllegalArgumentException("La especialidad del técnico es obligatoria");
+        }
+
+        // 2. Instanciar el objeto de dominio (Nace activo y con carga 0 por defecto en su lógica interna)
+        // Nota: Asegúrate de que tu entidad 'Tecnico' tenga este constructor: (id, nombre, especialidad, activo, cargaTrabajo)
+        Tecnico nuevoTecnico = new Tecnico(null, nombre, especialidad, true, 0);
+
+        // 3. Persistir en la base de datos a través del repositorio y devolver la entidad gestionada
+        return tecnicoRepository.save(nuevoTecnico);
+    }
+
     @Transactional
     public void desactivarTecnico(Long id) {
         // 1. Recuperamos el técnico

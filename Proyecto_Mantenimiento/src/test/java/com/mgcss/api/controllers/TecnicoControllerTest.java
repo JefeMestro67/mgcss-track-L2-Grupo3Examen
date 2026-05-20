@@ -10,10 +10,14 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -28,7 +32,9 @@ public class TecnicoControllerTest {
     @MockBean
     private TecnicoService tecnicoService;
 
-    // 1. Único endpoint expuesto y testeado en el controlador de técnicos
+    // TESTS: ENDPOINTS DEL CONTROLADOR 
+
+
     @Test
     void cuandoDesactivarTecnico_entoncesDevuelveNoContent() throws Exception {
         Mockito.doNothing().when(tecnicoService).desactivarTecnico(1L);
@@ -37,7 +43,29 @@ public class TecnicoControllerTest {
                 .andExpect(status().isNoContent());
     }
 
-    // 2. Test del Mapper (Mantenido para no perder coverage de la capa API)
+    //  NUEVO TEST AÑADIDO: POST /api/tecnicos
+    @Test
+    void cuandoCrearTecnico_conDatosValidos_entoncesDevuelveCreatedYJson() throws Exception {
+        // Arrange
+        Tecnico tecnicoCreado = new Tecnico(1L, "Carlos Gomez", "Sistemas de Redes", true, 0);
+        Mockito.when(tecnicoService.crearTecnico(anyString(), anyString())).thenReturn(tecnicoCreado);
+
+        String jsonPayload = "{\"nombre\":\"Carlos Gomez\",\"especialidad\":\"Sistemas de Redes\"}";
+
+        // Act & Assert
+        mockMvc.perform(post("/api/tecnicos")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonPayload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.nombre").value("Carlos Gomez"))
+                .andExpect(jsonPath("$.especialidad").value("Sistemas de Redes"))
+                .andExpect(jsonPath("$.activo").value(true))
+                .andExpect(jsonPath("$.cargaTrabajo").value(0));
+    }
+
+    // TESTS: MAPPERS Y DTOS 
+
     @Test
     void debeMapearTecnicoAResponseDtoCorrectamente() {
         Tecnico tecnicoDominio = new Tecnico(1L, "Carlos", "Sistemas", true, 3);
@@ -54,7 +82,6 @@ public class TecnicoControllerTest {
         assertNull(TecnicoApiMapper.toResponseDTO(null));
     }
 
-    // 3. Test del DTO (Mantenido para verificar mutabilidad/constructores del contrato)
     @Test
     void debeManipularAtributosDeTecnicoRequestDto() {
         TecnicoRequestDTO requestDto = new TecnicoRequestDTO();
