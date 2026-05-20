@@ -67,7 +67,7 @@ class SolicitudControllerTest {
     }
 
     @Test
-    void cuandoConsultarPorIdInexistente_entoncesDevuelveBadRequest() { // SonarCloud: throws Exception eliminado
+    void cuandoConsultarPorIdInexistente_entoncesDevuelveBadRequest() { 
         Mockito.when(solicitudService.buscarPorId(99L)).thenThrow(new IllegalArgumentException("La solicitud no existe"));
         Assertions.assertThrows(ServletException.class, () -> {
             mockMvc.perform(get("/api/solicitudes/99"));

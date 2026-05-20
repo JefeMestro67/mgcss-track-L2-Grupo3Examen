@@ -38,6 +38,7 @@ public class SolicitudResponseDTO {
     @Schema(description = "Historial completo con todas las transiciones de estado sufridas por la solicitud")
     private List<EstadoChangeDTO> historial;
 
+
     public SolicitudResponseDTO() {
     }
 
@@ -50,7 +51,7 @@ public class SolicitudResponseDTO {
     public String getClienteNombre() { return clienteNombre; }
     public void setClienteNombre(String clienteNombre) { this.clienteNombre = clienteNombre; }
 
-    public String getMainDescripcion() { return descripcion; } // Manteniendo compatibilidad semántica
+    public String getMainDescripcion() { return descripcion; }
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 

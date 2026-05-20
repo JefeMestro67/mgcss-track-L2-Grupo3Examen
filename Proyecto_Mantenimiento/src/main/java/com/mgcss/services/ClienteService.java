@@ -18,7 +18,7 @@ public class ClienteService {
         Cliente nuevoCliente = new Cliente(
             null, 
             nombre, 
-            email,
+            email, 
             TipoCliente.STANDARD, 
             true, 
             0

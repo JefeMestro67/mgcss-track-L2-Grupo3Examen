@@ -13,17 +13,6 @@ public class TecnicoService {
     public TecnicoService(TecnicoRepository tecnicoRepository) {
         this.tecnicoRepository = tecnicoRepository;
     }
-    
-    public Tecnico crearTecnico(String nombre, String especialidad) {
-        Tecnico nuevoTecnico = new Tecnico(
-            null, 
-            nombre, 
-            especialidad, 
-            true, 
-            0
-        );
-        return tecnicoRepository.save(nuevoTecnico);
-    }
 
     public void desactivarTecnico(Long id) {
         Tecnico tecnico = tecnicoRepository.findById(id)
@@ -32,4 +21,6 @@ public class TecnicoService {
         tecnicoRepository.save(tecnico);
     }
 
+    // Arquitectura: Se eliminaron los métodos huerfanos "asignarNuevaTarea" y "finalizarTarea".
+    // La carga de trabajo de los operarios técnicos se recalcula de forma atómica en SolicitudService.
 }

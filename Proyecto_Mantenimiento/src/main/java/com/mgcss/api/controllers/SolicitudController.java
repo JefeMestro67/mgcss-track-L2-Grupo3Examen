@@ -20,7 +20,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/solicitudes")
-@Tag(name = "Solicitudes", description = "Controlador para la gestión del ciclo de vida de las solicitudes de mantenimiento")
+@Tag(name = "Solicitudes", description = "Controlador unificado para la gestión segura del ciclo de vida de las solicitudes")
 public class SolicitudController {
 
     private final SolicitudService solicitudService;
@@ -30,11 +30,11 @@ public class SolicitudController {
     }
 
     @PostMapping
-    @Operation(summary = "Crear una nueva solicitud", description = "Registra una solicitud de mantenimiento asociada a un cliente existente. Nace automáticamente en estado ABIERTA.")
+    @Operation(summary = "Crear una nueva solicitud", description = "Registra una solicitud de mantenimiento asociada a un cliente. Nace automáticamente en estado ABIERTA incrementando de forma segura los contadores internos del sistema.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Solicitud creada con éxito de manera persistente"),
-        @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o inconsistentes"),
-        @ApiResponse(responseCode = "500", description = "Error interno: El cliente indicado no existe en el sistema")
+        @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o cliente inactivo/con límite superado"),
+        @ApiResponse(responseCode = "404", description = "El cliente proporcionado no existe en el sistema")
     })
     public ResponseEntity<SolicitudResponseDTO> crear(@Valid @RequestBody SolicitudRequestDTO request) { // Arquitectura: @Valid integrado
         Solicitud nueva = solicitudService.crearSolicitud(request.getClienteId(), request.getDescripcion());
@@ -54,10 +54,11 @@ public class SolicitudController {
     }
 
     @PutMapping("/{id}/tecnico")
-    @Operation(summary = "Asignar un técnico", description = "Asigna un operario técnico a la solicitud. Provoca que el estado de la solicitud transicione automáticamente a EN_PROCESO.")
+    @Operation(summary = "Asignar un técnico", description = "Asigna un operario activo a la solicitud. Provoca que el estado de la solicitud transicione automáticamente a EN_PROCESO e incrementa la carga del operario.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Técnico asignado correctamente. Estado mutado a EN_PROCESO"),
-        @ApiResponse(responseCode = "400", description = "Regla de negocio violada o IDs inválidos")
+        @ApiResponse(responseCode = "400", description = "Regla de negocio violada (ej. técnico inactivo o solicitud cerrada)"),
+        @ApiResponse(responseCode = "404", description = "La solicitud o el técnico indicados no existen")
     })
     public ResponseEntity<Void> asignarTecnico(
             @Parameter(description = "ID de la solicitud", example = "1") @PathVariable Long id, 
@@ -67,10 +68,11 @@ public class SolicitudController {
     }
 
     @PutMapping("/{id}/cerrar")
-    @Operation(summary = "Cerrar una solicitud", description = "Cambia el estado de una solicitud a CERRADA y registra la fecha de finalización. Requiere obligatoriamente que la solicitud haya pasado previamente por el estado EN_PROCESO.")
+    @Operation(summary = "Cerrar una solicitud", description = "Cambia el estado de una solicitud a CERRADA, liberando la carga tanto del cliente como del técnico asignado. Requiere obligatoriamente que la solicitud esté EN_PROCESO.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Solicitud cerrada con éxito"),
-        @ApiResponse(responseCode = "500", description = "Error de negocio: Intento de cierre ilegal desde un estado no permitido (ej. ABIERTA)")
+        @ApiResponse(responseCode = "400", description = "Intento de cierre ilegal desde un estado no permitido (ej. ABIERTA)"),
+        @ApiResponse(responseCode = "404", description = "La solicitud con el ID proporcionado no existe")
     })
     public ResponseEntity<Void> cerrar(
             @Parameter(description = "ID de la solicitud que se desea cerrar", example = "1") @PathVariable Long id) {
@@ -79,10 +81,11 @@ public class SolicitudController {
     }
 
     @PatchMapping("/{id}/reabrir")
-    @Operation(summary = "Reabrir una solicitud cerrada", description = "Permite la reapertura manual de una incidencia previamente CERRADA, devolviéndola al estado ABIERTA.")
+    @Operation(summary = "Reabrir una solicitud cerrada", description = "Permite la reapertura manual de una incidencia previamente CERRADA, devolviéndola limpiamente al estado EN_PROCESO si las cuotas del cliente lo permiten.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Solicitud reabierta con éxito"),
-        @ApiResponse(responseCode = "400", description = "La solicitud no se puede reabrir porque no se encontraba en estado CERRADA")
+        @ApiResponse(responseCode = "400", description = "La solicitud no se encontraba en estado CERRADA o se violan los invariantes del cliente"),
+        @ApiResponse(responseCode = "404", description = "La solicitud especificada no existe")
     })
     public ResponseEntity<Void> reabrir(
             @Parameter(description = "ID de la solicitud a reabrir", example = "1") @PathVariable Long id) {
