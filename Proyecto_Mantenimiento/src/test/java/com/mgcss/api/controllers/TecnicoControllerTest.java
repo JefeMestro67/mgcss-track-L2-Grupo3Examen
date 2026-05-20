@@ -23,6 +23,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+/**
+ * Pruebas unitarias para el controlador TecnicoController.
+ * Valida la exposición de endpoints de la entidad Técnico, cubriendo flujos de éxito y excepciones.
+ */
 @WebMvcTest(TecnicoController.class)
 public class TecnicoControllerTest {
 
@@ -32,8 +36,9 @@ public class TecnicoControllerTest {
     @MockBean
     private TecnicoService tecnicoService;
 
-    // TESTS: ENDPOINTS DEL CONTROLADOR 
-
+    // =========================================================================
+    // TESTS: ENDPOINTS DEL CONTROLADOR
+    // =========================================================================
 
     @Test
     void cuandoDesactivarTecnico_entoncesDevuelveNoContent() throws Exception {
@@ -43,7 +48,6 @@ public class TecnicoControllerTest {
                 .andExpect(status().isNoContent());
     }
 
-    //  NUEVO TEST AÑADIDO: POST /api/tecnicos
     @Test
     void cuandoCrearTecnico_conDatosValidos_entoncesDevuelveCreatedYJson() throws Exception {
         // Arrange
@@ -64,7 +68,37 @@ public class TecnicoControllerTest {
                 .andExpect(jsonPath("$.cargaTrabajo").value(0));
     }
 
-    // TESTS: MAPPERS Y DTOS 
+    // Nuevo escenario de fallo: Intento de desactivación de un técnico que no existe
+    @Test
+    void cuandoDesactivarTecnicoInexistente_entoncesDevuelveNotFound() throws Exception {
+        // Arrange: Configurar el simulacro para lanzar IllegalArgumentException ante un ID inválido
+        Mockito.doThrow(new IllegalArgumentException("El técnico no existe"))
+               .when(tecnicoService).desactivarTecnico(99L);
+
+        // Act & Assert: Verificar que el GlobalExceptionHandler procesa la excepción devolviendo HTTP 404
+        mockMvc.perform(put("/api/tecnicos/99/desactivar")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("El técnico no existe"));
+    }
+
+    // Nuevo escenario de fallo: Intento de desactivación de un técnico con tareas asignadas activas (Invariante de dominio)
+    @Test
+    void cuandoDesactivarTecnicoConCargaActiva_entoncesDevuelveBadRequest() throws Exception {
+        // Arrange: Configurar el simulacro para lanzar IllegalStateException debido a reglas de negocio
+        Mockito.doThrow(new IllegalStateException("No se puede desactivar un técnico con solicitudes pendientes"))
+               .when(tecnicoService).desactivarTecnico(2L);
+
+        // Act & Assert: Verificar que el GlobalExceptionHandler procesa la excepción devolviendo HTTP 400
+        mockMvc.perform(put("/api/tecnicos/2/desactivar")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("No se puede desactivar un técnico con solicitudes pendientes"));
+    }
+
+    // =========================================================================
+    // TESTS: MAPPERS Y DTOS
+    // =========================================================================
 
     @Test
     void debeMapearTecnicoAResponseDtoCorrectamente() {

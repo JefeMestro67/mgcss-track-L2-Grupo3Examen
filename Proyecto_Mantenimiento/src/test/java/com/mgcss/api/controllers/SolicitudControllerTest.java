@@ -6,8 +6,6 @@ import com.mgcss.api.dto.SolicitudRequestDTO;
 import com.mgcss.domain.*;
 import com.mgcss.services.SolicitudService;
 
-import jakarta.servlet.ServletException;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +22,10 @@ import java.util.Collections;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Pruebas unitarias para el controlador SolicitudController.
+ * Verifica la correcta exposición de los endpoints y el manejo de respuestas HTTP.
+ */
 @WebMvcTest(SolicitudController.class)
 public class SolicitudControllerTest {
 
@@ -82,13 +84,16 @@ public class SolicitudControllerTest {
     }
 
     @Test
-    void cuandoConsultarPorIdInexistente_entoncesDevuelveBadRequest() throws Exception {
+    void cuandoConsultarPorIdInexistente_entoncesDevuelveNotFound() throws Exception {
+        // Arrange: Configurar el simulacro para lanzar la excepción cuando no exista el recurso
         Mockito.when(solicitudService.buscarPorId(99L))
                .thenThrow(new IllegalArgumentException("La solicitud no existe"));
 
-        Assertions.assertThrows(ServletException.class, () -> {
-            mockMvc.perform(get("/api/solicitudes/99"));
-        });
+        // Act & Assert: Validar que el GlobalExceptionHandler intercepta el error y devuelve 404 (Not Found)
+        mockMvc.perform(get("/api/solicitudes/99")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("La solicitud no existe"));
     }
 
     @Test

@@ -17,6 +17,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Pruebas unitarias para el controlador ClienteController.
+ * Verifica la correcta exposición de los endpoints y el manejo de respuestas HTTP de éxito y fallo.
+ */
 @WebMvcTest(ClienteController.class)
 public class ClienteControllerTest {
 
@@ -61,5 +65,19 @@ public class ClienteControllerTest {
 
         mockMvc.perform(put("/api/clientes/1/desactivar"))
                 .andExpect(status().isNoContent());
+    }
+
+    // 3. Test de Escenario de Fallo → Intentar operar con un Cliente Inexistente
+    @Test
+    void cuandoDesactivarClienteInexistente_entoncesDevuelveNotFound() throws Exception {
+        // Arrange: Se configura el simulacro para lanzar la excepción cuando no exista el cliente
+        Mockito.doThrow(new IllegalArgumentException("El cliente no existe"))
+               .when(clienteService).desactivarCliente(99L);
+
+        // Act & Assert: Se valida que el GlobalExceptionHandler intercepte la excepción y responda HTTP 404
+        mockMvc.perform(put("/api/clientes/99/desactivar")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("El cliente no existe"));
     }
 }
