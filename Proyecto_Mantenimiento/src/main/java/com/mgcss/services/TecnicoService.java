@@ -20,7 +20,16 @@ public class TecnicoService {
         tecnico.desactivar();
         tecnicoRepository.save(tecnico);
     }
+    
+    public Tecnico crearTecnico(String nombre, String especialidad) {
+        Tecnico nuevoTecnico = new Tecnico(
+            null, 
+            nombre, 
+            especialidad, 
+            true, 
+            0
+        );
+        return tecnicoRepository.save(nuevoTecnico);
+    }
 
-    // Arquitectura: Se eliminaron los métodos huerfanos "asignarNuevaTarea" y "finalizarTarea".
-    // La carga de trabajo de los operarios técnicos se recalcula de forma atómica en SolicitudService.
 }

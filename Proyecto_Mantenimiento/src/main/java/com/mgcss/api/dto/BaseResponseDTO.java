@@ -6,7 +6,6 @@ public abstract class BaseResponseDTO {
     protected String nombre;
     protected boolean activo;
 
-    // SonarCloud: Visibilidad cambiada a protected ya que la clase es abstracta
     protected BaseResponseDTO(Long id, String nombre, boolean activo) {
         this.id = id;
         this.nombre = nombre;

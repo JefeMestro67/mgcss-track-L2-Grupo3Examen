@@ -1,11 +1,18 @@
 package com.mgcss.api.controllers;
 
+import com.mgcss.api.dto.TecnicoRequestDTO;
+import com.mgcss.api.dto.TecnicoResponseDTO;
+import com.mgcss.api.mapper.TecnicoApiMapper;
+import com.mgcss.domain.Tecnico;
 import com.mgcss.services.TecnicoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,6 +39,16 @@ public class TecnicoController {
         tecnicoService.desactivarTecnico(id);
         return ResponseEntity.noContent().build();
     }
+    
+    @PostMapping
+    @Operation(summary = "Registrar un nuevo técnico", description = "Crea un operario técnico en el sistema.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Técnico registrado con éxito"),
+        @ApiResponse(responseCode = "400", description = "Datos de entrada incorrectos")
+    })
+    public ResponseEntity<TecnicoResponseDTO> crear(@Valid @RequestBody TecnicoRequestDTO request) {
+        Tecnico nuevo = tecnicoService.crearTecnico(request.getNombre(), request.getEspecialidad());
+        return new ResponseEntity<>(TecnicoApiMapper.toResponseDTO(nuevo), HttpStatus.CREATED);
+    }
 
-    // Arquitectura: Se eliminaron los endpoints "asignar-tarea" y "finalizar-tarea" para garantizar la consistencia atómica del dominio.
 }
