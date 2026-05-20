@@ -6,7 +6,7 @@ public abstract class BaseResponseDTO {
     protected String nombre;
     protected boolean activo;
 
-    public BaseResponseDTO(Long id, String nombre, boolean activo) {
+    protected BaseResponseDTO(Long id, String nombre, boolean activo) {
         this.id = id;
         this.nombre = nombre;
         this.activo = activo;

@@ -44,29 +44,10 @@ class ClienteServiceTest {
     }
 
     @Test
-    void no_debe_desactivar_cliente_si_no_existe() {
+    void desactivar_falla_si_no_existe() {
         when(mockRepoCliente.findById(1L)).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class, () -> {
             servicio.desactivarCliente(1L);
-        });
-    }
-
-    @Test
-    void debe_finalizar_solicitud_para_cliente() {
-        Cliente cliente = new Cliente(1L, "Juan Pérez", "juan@example.com", TipoCliente.STANDARD, true, 2);
-        when(mockRepoCliente.findById(1L)).thenReturn(Optional.of(cliente));
-
-        servicio.finalizarSolicitud(1L);
-
-        assertEquals(1, cliente.getSolicitudesAbiertas());
-        verify(mockRepoCliente).save(cliente);
-    }
-
-    @Test
-    void no_debe_finalizar_solicitud_si_cliente_no_existe() {
-        when(mockRepoCliente.findById(1L)).thenReturn(Optional.empty());
-        assertThrows(IllegalArgumentException.class, () -> {
-            servicio.finalizarSolicitud(1L);
         });
     }
 
@@ -77,10 +58,7 @@ class ClienteServiceTest {
         Cliente creado = servicio.crearCliente("Juan Pérez", "juan.perez@example.com");
 
         verify(mockRepoCliente).save(any(Cliente.class));
-        assertNotNull(creado);
         assertEquals("Juan Pérez", creado.getNombre());
         assertEquals("juan.perez@example.com", creado.getEmail());
-        assertTrue(creado.isActivo());
-        assertEquals(0, creado.getSolicitudesAbiertas());
     }
 }

@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ClienteController.class)
-public class ClienteControllerTest {
+class ClienteControllerTest { 
 
     @Autowired
     private MockMvc mockMvc;
@@ -33,11 +33,9 @@ public class ClienteControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Usamos vuestro constructor exacto: (id, nombre, email, tipoCliente, activo, solicitudesAbiertas)
         clienteMock = new Cliente(1L, "Carlos Gomez", "carlos@mgcss.com", TipoCliente.STANDARD, true, 0);
     }
 
-    // 1. Test de POST → Crear Cliente
     @Test
     void cuandoCrearCliente_entoncesDevuelveStatusCreatedYJson() throws Exception {
         ClienteRequestDTO request = new ClienteRequestDTO("Carlos Gomez", "carlos@mgcss.com");
@@ -52,27 +50,13 @@ public class ClienteControllerTest {
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.nombre").value("Carlos Gomez"))
                 .andExpect(jsonPath("$.email").value("carlos@mgcss.com"));
-                
-        // Nota: Si vuestro ClienteResponseDTO incluye también el tipo de cliente, 
-        // puedes añadir aquí abajo la siguiente línea sin problemas:
-        // .andExpect(jsonPath("$.tipoCliente").value("STANDARD"));
     }
 
-    // 2. Test de PUT → Desactivar Cliente
     @Test
     void cuandoDesactivarCliente_entoncesDevuelveNoContent() throws Exception {
         Mockito.doNothing().when(clienteService).desactivarCliente(1L);
 
         mockMvc.perform(put("/api/clientes/1/desactivar"))
-                .andExpect(status().isNoContent());
-    }
-
-    // 3. Test de PUT → Finalizar Solicitud (Decrementar contador)
-    @Test
-    void cuandoFinalizarSolicitudCliente_entoncesDevuelveNoContent() throws Exception {
-        Mockito.doNothing().when(clienteService).finalizarSolicitud(1L);
-
-        mockMvc.perform(put("/api/clientes/1/finalizar-solicitud"))
                 .andExpect(status().isNoContent());
     }
 }

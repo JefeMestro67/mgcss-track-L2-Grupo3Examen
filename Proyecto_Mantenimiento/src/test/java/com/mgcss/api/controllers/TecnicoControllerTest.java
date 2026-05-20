@@ -14,13 +14,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @WebMvcTest(TecnicoController.class)
-public class TecnicoControllerTest {
+class TecnicoControllerTest { 
 
     @Autowired
     private MockMvc mockMvc;
@@ -31,31 +28,13 @@ public class TecnicoControllerTest {
     @Test
     void cuandoDesactivarTecnico_entoncesDevuelveNoContent() throws Exception {
         Mockito.doNothing().when(tecnicoService).desactivarTecnico(1L);
-
         mockMvc.perform(put("/api/tecnicos/1/desactivar"))
-                .andExpect(status().isNoContent());
-    }
-
-    @Test
-    void cuandoAsignarTareaATecnico_entoncesDevuelveNoContent() throws Exception {
-        Mockito.doNothing().when(tecnicoService).asignarNuevaTarea(1L);
-
-        mockMvc.perform(put("/api/tecnicos/1/asignar-tarea"))
-                .andExpect(status().isNoContent());
-    }
-
-    @Test
-    void cuandoFinalizarTareaDeTecnico_entoncesDevuelveNoContent() throws Exception {
-        Mockito.doNothing().when(tecnicoService).finalizarTarea(1L);
-
-        mockMvc.perform(put("/api/tecnicos/1/finalizar-tarea"))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     void debeMapearTecnicoAResponseDtoCorrectamente() {
         Tecnico tecnicoDominio = new Tecnico(1L, "Carlos", "Sistemas", true, 3);
-
         TecnicoResponseDTO responseDto = TecnicoApiMapper.toResponseDTO(tecnicoDominio);
 
         assertNotNull(responseDto);
@@ -64,7 +43,6 @@ public class TecnicoControllerTest {
         assertEquals("Sistemas", responseDto.getEspecialidad());
         assertTrue(responseDto.isActivo());
         assertEquals(3, responseDto.getCargaTrabajo());
-
         assertNull(TecnicoApiMapper.toResponseDTO(null));
     }
 

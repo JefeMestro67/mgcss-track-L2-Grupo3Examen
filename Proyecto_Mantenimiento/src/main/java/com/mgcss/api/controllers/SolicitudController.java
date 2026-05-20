@@ -11,12 +11,12 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/solicitudes")
@@ -36,7 +36,7 @@ public class SolicitudController {
         @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o inconsistentes"),
         @ApiResponse(responseCode = "500", description = "Error interno: El cliente indicado no existe en el sistema")
     })
-    public ResponseEntity<SolicitudResponseDTO> crear(@RequestBody SolicitudRequestDTO request) {
+    public ResponseEntity<SolicitudResponseDTO> crear(@Valid @RequestBody SolicitudRequestDTO request) { // Arquitectura: @Valid integrado
         Solicitud nueva = solicitudService.crearSolicitud(request.getClienteId(), request.getDescripcion());
         return new ResponseEntity<>(SolicitudApiMapper.toResponseDTO(nueva), HttpStatus.CREATED);
     }
@@ -96,8 +96,7 @@ public class SolicitudController {
     public ResponseEntity<List<SolicitudResponseDTO>> listar() {
         List<SolicitudResponseDTO> lista = solicitudService.listarTodas().stream()
                 .map(SolicitudApiMapper::toResponseDTO)
-                .collect(Collectors.toList());
+                .toList(); // SonarCloud: .collect cambiado a .toList()
         return ResponseEntity.ok(lista);
     }
 }
-

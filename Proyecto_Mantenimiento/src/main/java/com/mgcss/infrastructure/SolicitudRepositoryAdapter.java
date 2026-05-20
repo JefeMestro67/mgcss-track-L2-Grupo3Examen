@@ -1,7 +1,6 @@
 package com.mgcss.infrastructure;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.List;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +34,7 @@ public class SolicitudRepositoryAdapter implements SolicitudRepository {
                     .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
             entity.setCliente(clienteEntity);
         } else {
-            throw new IllegalArgumentException("La solicitud requiere un cliente con ID");
+            throw new IllegalArgumentException("La solicitud debe tener un cliente válido con ID asignado");
         }
         
         entity.setDescripcion(solicitud.getDescripcion());
@@ -46,17 +45,17 @@ public class SolicitudRepositoryAdapter implements SolicitudRepository {
             TecnicoEntity tecnicoEntity = tecnicoRepository.findById(solicitud.getTecnicoAsignado().getId())
                     .orElseThrow(() -> new RuntimeException("Técnico no encontrado"));
             entity.setTecnicoAsignado(tecnicoEntity);
+        } else {
+            entity.setTecnicoAsignado(null);
         }
         
         entity.setFechaCierre(solicitud.getFechaCierre());
-
-        // --- MAPEO DEL HISTORIAL (Dominio -> Entidad) ---
-        List<EstadoChangeEntity> historialEntities = solicitud.getHistorial().stream()
-                .map(h -> new EstadoChangeEntity(h.getEstadoAnterior(), h.getEstadoNuevo(), h.getFechaCambio()))
-                .collect(Collectors.toList());
-        entity.setHistorial(historialEntities);
-        // ------------------------------------------------
-
+        
+        entity.getHistorial().clear();
+        solicitud.getHistorial().forEach(h -> 
+            entity.getHistorial().add(new EstadoChangeEntity(h.getEstadoAnterior(), h.getEstadoNuevo(), h.getFechaCambio()))
+        );
+        
         SolicitudEntity guardada = jpaRepository.save(entity);
         return mapToDomain(guardada);
     }
@@ -65,12 +64,12 @@ public class SolicitudRepositoryAdapter implements SolicitudRepository {
     public Optional<Solicitud> findById(Long id) {
         return jpaRepository.findById(id).map(this::mapToDomain);
     }
-    
+
     @Override
     public List<Solicitud> findAll() {
         return jpaRepository.findAll().stream()
                 .map(this::mapToDomain)
-                .collect(Collectors.toList());
+                .toList(); 
     }
 
     private Solicitud mapToDomain(SolicitudEntity entity) {
@@ -97,7 +96,6 @@ public class SolicitudRepositoryAdapter implements SolicitudRepository {
             );
         }
         
-        // Creamos el objeto de dominio
         Solicitud solicitud = new Solicitud(
             entity.getId(),
             clienteDominio,
@@ -108,14 +106,11 @@ public class SolicitudRepositoryAdapter implements SolicitudRepository {
             entity.getFechaCierre()
         );
 
-        // --- MAPEO DEL HISTORIAL (Entidad -> Dominio) ---
-        // Como el historial en Solicitud es privado, lo restauramos mediante los cambios guardados
         if (entity.getHistorial() != null) {
             entity.getHistorial().forEach(h -> 
-                solicitud.getHistorial().add(new EstadoChange(h.getEstadoAnterior(), h.getEstadoNuevo()))
+                solicitud.getHistorial().add(new EstadoChange(h.getEstadoAnterior(), h.getEstadoNuevo(), h.getFechaCambio()))
             );
         }
-        // ------------------------------------------------
 
         return solicitud;
     }

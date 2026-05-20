@@ -38,38 +38,37 @@ public class SolicitudResponseDTO {
     @Schema(description = "Historial completo con todas las transiciones de estado sufridas por la solicitud")
     private List<EstadoChangeDTO> historial;
 
-    public SolicitudResponseDTO(
-            Long id,
-            Long clienteId,
-            String clienteNombre,
-            String descripcion,
-            LocalDateTime fechaCreacion,
-            Estado estado,
-            Long tecnicoId,
-            String tecnicoNombre,
-            LocalDateTime fechaCierre,
-            List<EstadoChangeDTO> historial
-    ) {
-        this.id = id;
-        this.clienteId = clienteId;
-        this.clienteNombre = clienteNombre;
-        this.descripcion = descripcion;
-        this.fechaCreacion = fechaCreacion;
-        this.estado = estado;
-        this.tecnicoId = tecnicoId;
-        this.tecnicoNombre = tecnicoNombre;
-        this.fechaCierre = fechaCierre;
-        this.historial = historial;
+    public SolicitudResponseDTO() {
     }
 
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
     public Long getClienteId() { return clienteId; }
+    public void setClienteId(Long clienteId) { this.clienteId = clienteId; }
+
     public String getClienteNombre() { return clienteNombre; }
+    public void setClienteNombre(String clienteNombre) { this.clienteNombre = clienteNombre; }
+
+    public String getMainDescripcion() { return descripcion; } // Manteniendo compatibilidad semántica
     public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+
     public LocalDateTime getFechaCreacion() { return fechaCreacion; }
+    public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
+
     public Estado getEstado() { return estado; }
+    public void setEstado(Estado estado) { this.estado = estado; }
+
     public Long getTecnicoId() { return tecnicoId; }
+    public void setTecnicoId(Long tecnicoId) { this.tecnicoId = tecnicoId; }
+
     public String getTecnicoNombre() { return tecnicoNombre; }
+    public void setTecnicoNombre(String tecnicoNombre) { this.tecnicoNombre = tecnicoNombre; }
+
     public LocalDateTime getFechaCierre() { return fechaCierre; }
+    public void setFechaCierre(LocalDateTime fechaCierre) { this.fechaCierre = fechaCierre; }
+
     public List<EstadoChangeDTO> getHistorial() { return historial; }
+    public void setHistorial(List<EstadoChangeDTO> historial) { this.historial = historial; }
 }

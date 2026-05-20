@@ -1,11 +1,18 @@
 package com.mgcss.api.controllers;
 
+import com.mgcss.api.dto.TecnicoRequestDTO;
+import com.mgcss.api.dto.TecnicoResponseDTO;
+import com.mgcss.api.mapper.TecnicoApiMapper;
+import com.mgcss.domain.Tecnico;
 import com.mgcss.services.TecnicoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,30 +39,16 @@ public class TecnicoController {
         tecnicoService.desactivarTecnico(id);
         return ResponseEntity.noContent().build();
     }
-
-    @PutMapping("/{id}/asignar-tarea")
-    @Operation(summary = "Incrementar carga de trabajo", description = "Incrementa manualmente el contador de tareas o solicitudes activas asignadas a este técnico.")
+    
+    @PostMapping
+    @Operation(summary = "Registrar un nuevo técnico", description = "Crea un operario técnico en el sistema.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Carga incrementada con éxito"),
-        @ApiResponse(responseCode = "400", description = "Operación rechazada (ej. el técnico superaría el límite máximo de carga permitido)"),
-        @ApiResponse(responseCode = "404", description = "El técnico con el ID proporcionado no existe")
+        @ApiResponse(responseCode = "201", description = "Técnico registrado con éxito"),
+        @ApiResponse(responseCode = "400", description = "Datos de entrada incorrectos")
     })
-    public ResponseEntity<Void> asignarTarea(
-            @Parameter(description = "ID del técnico al que se le asigna la tarea", example = "1") @PathVariable Long id) {
-        tecnicoService.asignarNuevaTarea(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<TecnicoResponseDTO> crear(@Valid @RequestBody TecnicoRequestDTO request) {
+        Tecnico nuevo = tecnicoService.crearTecnico(request.getNombre(), request.getEspecialidad());
+        return new ResponseEntity<>(TecnicoApiMapper.toResponseDTO(nuevo), HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}/finalizar-tarea")
-    @Operation(summary = "Finalizar tarea", description = "Reduce la carga de trabajo del técnico al marcar una de sus tareas activas como completada.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Carga de trabajo reducida con éxito"),
-        @ApiResponse(responseCode = "400", description = "Operación inválida (ej. el técnico ya tiene 0 tareas asignadas y no puede reducirse más)"),
-        @ApiResponse(responseCode = "404", description = "El técnico con el ID proporcionado no existe")
-    })
-    public ResponseEntity<Void> finalizarTarea(
-            @Parameter(description = "ID del técnico que finaliza la tarea", example = "1") @PathVariable Long id) {
-        tecnicoService.finalizarTarea(id);
-        return ResponseEntity.noContent().build();
-    }
 }
