@@ -43,7 +43,8 @@ public class ClienteController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Cliente desactivado con éxito"),
         @ApiResponse(responseCode = "404", description = "El cliente con el ID especificado no existe"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor o incumplimiento de regla de negocio")
+        @ApiResponse(responseCode = "400", description = "Violación de regla de negocio: El cliente posee solicitudes abiertas en curso"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor ante un fallo técnico imprevisto")
     })
     public ResponseEntity<Void> desactivar(
             @Parameter(description = "ID único del cliente a dar de baja", example = "1") @PathVariable Long id) {

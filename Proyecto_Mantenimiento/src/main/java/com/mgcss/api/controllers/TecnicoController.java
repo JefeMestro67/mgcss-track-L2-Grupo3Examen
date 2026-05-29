@@ -32,7 +32,10 @@ public class TecnicoController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Técnico desactivado con éxito"),
         @ApiResponse(responseCode = "404", description = "El técnico con el ID proporcionado no existe"),
-        @ApiResponse(responseCode = "500", description = "Error interno o regla de negocio violada al intentar desactivar")
+        // Mapea la infracción de negocio (Ej: desactivar operario con tareas activas) interceptada por el Handler
+        @ApiResponse(responseCode = "400", description = "Violación de regla de negocio: El técnico posee carga de trabajo pendiente"),
+        // Mapea fallos técnicos inesperados de infraestructura
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor ante un fallo técnico imprevisto")
     })
     public ResponseEntity<Void> desactivar(
             @Parameter(description = "ID único del técnico a desactivar", example = "1") @PathVariable Long id) {
@@ -44,7 +47,8 @@ public class TecnicoController {
     @Operation(summary = "Registrar un nuevo técnico", description = "Crea un operario técnico en el sistema.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Técnico registrado con éxito"),
-        @ApiResponse(responseCode = "400", description = "Datos de entrada incorrectos")
+        @ApiResponse(responseCode = "400", description = "Datos de entrada incorrectos o DTO inválido"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     public ResponseEntity<TecnicoResponseDTO> crear(@Valid @RequestBody TecnicoRequestDTO request) {
         Tecnico nuevo = tecnicoService.crearTecnico(request.getNombre(), request.getEspecialidad());
