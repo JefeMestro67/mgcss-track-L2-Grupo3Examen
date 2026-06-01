@@ -53,6 +53,21 @@ class ClienteControllerTest {
     }
 
     @Test
+    void cuandoCrearClienteConCamposInvalidos_entoncesDevuelveBadRequestPorValidacion() throws Exception {
+        // Arrange: Enviamos un DTO con nombre vacío y un email mal formado
+        ClienteRequestDTO requestInvalido = new ClienteRequestDTO("", "correo-incorrecto");
+
+        // Act & Assert: Spring Framework interceptará la validación errónea antes de llegar al servicio
+        mockMvc.perform(post("/api/clientes")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestInvalido)))
+                .andExpect(status().isBadRequest()) 
+                // Verificamos que el mapa JSON del GlobalExceptionHandler contenga las claves de los campos que fallaron
+                .andExpect(jsonPath("$.nombre").exists())
+                .andExpect(jsonPath("$.email").exists());
+    }
+
+    @Test
     void cuandoDesactivarCliente_entoncesDevuelveNoContent() throws Exception {
         Mockito.doNothing().when(clienteService).desactivarCliente(1L);
 

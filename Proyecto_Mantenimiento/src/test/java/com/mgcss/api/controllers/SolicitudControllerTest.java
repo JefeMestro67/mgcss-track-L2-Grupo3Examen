@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(SolicitudController.class)
-class SolicitudControllerTest { 
+class SolicitudControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -54,6 +54,21 @@ class SolicitudControllerTest {
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.descripcion").value("Error en el servidor"))
                 .andExpect(jsonPath("$.estado").value("ABIERTA"));
+    }
+
+    @Test
+    void cuandoCrearSolicitudConCamposInvalidos_entoncesDevuelveBadRequestPorValidacion() throws Exception {
+        // Arrange: Enviamos un ID de cliente nulo y una descripción vacía/en blanco
+        SolicitudRequestDTO requestInvalida = new SolicitudRequestDTO(null, "   ");
+
+        // Act & Assert: Comprobamos que el motor de validación de Spring y nuestro GlobalExceptionHandler intercepten el fallo
+        mockMvc.perform(post("/api/solicitudes")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestInvalida)))
+                .andExpect(status().isBadRequest())
+                // Verificamos que el mapa JSON contenga las claves correspondientes a las validaciones fallidas
+                .andExpect(jsonPath("$.clienteId").exists())
+                .andExpect(jsonPath("$.descripcion").exists());
     }
 
     @Test
@@ -92,7 +107,7 @@ class SolicitudControllerTest {
     }
 
     @Test
-    void cuandoConsultarPorIdInexistente_entoncesDevuelveNotFound() throws Exception { 
+    void cuandoConsultarPorIdInexistente_entoncesDevuelveNotFound() throws Exception {
         Mockito.when(solicitudService.buscarPorId(99L))
                .thenThrow(new IllegalArgumentException("La solicitud no existe"));
         
