@@ -29,7 +29,7 @@ Haz clic en los siguientes accesos directos para abrir las plataformas de automa
 
 * **Integración Continua:** [Ver ejecuciones del Pipeline en GitHub Actions](https://github.com/franciscorrego/mgcss-track-L2-Grupo3/actions)
 * **Calidad de Código:** [Explorar el Dashboard de Métricas y Deuda Técnica en SonarCloud](https://sonarcloud.io/)
-* **Contrato de la API:** [Consultar la Especificación OpenAPI / Swagger Local](http://localhost:8080/swagger-ui/index.html)
+* **Contrato de la API:** [Consultar documentación de la API (Swagger)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/franciscorrego/mgcss-track-L2-Grupo3/feature/Actualizacion-Autorizacion/docs/api-spec.json)
 
 ---
 
