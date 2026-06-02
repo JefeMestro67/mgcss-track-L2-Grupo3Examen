@@ -14,13 +14,13 @@ Haz clic en los siguientes accesos directos para abrir las plataformas de automa
 
 ### Documentación Funcional Avanzada (Casos de Uso Correlativos)
 * **Especificación Extendida:** [Acceder al documento completo de Casos de Uso (use-cases.md)](docs/use-cases.md)
-* **Caso de Uso 1:** [Caso 1 – Crear cliente](docs/use-cases.md#caso-de-uso-1-crear-cliente)
-* **Caso de Uso 2:** [Caso 2 – Crear solicitud correctamente](docs/use-cases.md#caso-de-uso-2-crear-solicitud-correctamente)
-* **Caso de Uso 3:** [Caso 3 – Crear solicitud con cliente inexistente](docs/use-cases.md#caso-de-uso-3-crear-solicitud-con-cliente-inexistente)
-* **Caso de Uso 4:** [Caso 4 – Asignar técnico](docs/use-cases.md#caso-de-uso-4-asignar-tecnico)
-* **Caso de Uso 5:** [Caso 5 – Intentar cerrar sin estar en proceso](docs/use-cases.md#caso-de-uso-5-intentar-cerrar-sin-estar-en-proceso)
-* **Caso de Uso 6:** [Caso 6 – Cerrar solicitud correctamente](docs/use-cases.md#caso-de-uso-6-cerrar-solicitud-correctamente)
-* **Caso de Uso 7:** [Caso 7 – Reabrir solicitud](docs/use-cases.md#caso-de-uso-7-reabrir-solicitud)
+* **Caso de Uso 1:** [Caso 1 - Crear cliente](docs/use-cases.md#caso-1---crear-cliente)
+* **Caso de Uso 2:** [Caso 2 - Crear solicitud correctamente](docs/use-cases.md#caso-2---crear-solicitud-correctamente)
+* **Caso de Uso 3:** [Caso 3 - Crear solicitud con cliente inexistente](docs/use-cases.md#caso-3---crear-solicitud-con-cliente-inexistente)
+* **Caso de Uso 4:** [Caso 4 - Asignar tecnico a la solicitud](docs/use-cases.md#caso-4---asignar-tecnico-a-la-solicitud)
+* **Caso de Uso 5:** [Caso 5 - Intentar cerrar sin estar en proceso](docs/use-cases.md#caso-5---intentar-cerrar-sin-estar-en-proceso)
+* **Caso de Uso 6:** [Caso 6 - Cerrar solicitud correctamente](docs/use-cases.md#caso-6---cerrar-solicitud-correctamente)
+* **Caso de Uso 7:** [Caso 7 - Reabrir solicitud](docs/use-cases.md#caso-7---reabrir-solicitud)
 
 ### Pipelines e Infraestructura (Enlaces Externos)
 * **Integración Continua:** [Ver ejecuciones del Pipeline en GitHub Actions](https://github.com/franciscorrego/mgcss-track-L2-Grupo3/actions)
@@ -36,7 +36,7 @@ El proyecto implementa una arquitectura desacoplada y limpia dividida en cuatro 
 * **`com.mgcss.domain` (Capa de Dominio):** Contiene las entidades (`Cliente`, `Tecnico`, `Solicitud`), enums (`Estado`, `TipoCliente`) e interfaces de repositorio (`SolicitudRepository`, etc.). Es código puramente orientado a objetos, auto-contenido y libre de lógica de persistencia o dependencias web.
 * **`com.mgcss.services` (Capa de Aplicación):** Orquesta los flujos de negocio (`SolicitudService`, `ClienteService`, `TecnicoService`). Recupera entidades de los repositorios, invoca sus métodos de intención semántica y coordina las transacciones.
 * **`com.mgcss.infrastructure` (Capa de Persistencia / Datos):** Implementa el almacenamiento físico mediante repositorios de Spring Data JPA sobre una base de datos relacional y gestiona las transacciones de base de datos.
-* **`com.mgcss.api` (Capa de Exposición REST):** Actúa como el adaptador de entrada del sistema. Contiene los controladores REST (`SolicitudController`, etc.), los DTOs y el **`GlobalExceptionHandler`**, encargado de interceptar excepciones de negocio y transformarlas en respuestas HTTP estructuadas y consistentes para el cliente.
+* **`com.mgcss.api` (Capa de Exposición REST):** Actúa como el adaptador de entrada del sistema. Contiene los controladores REST (`SolicitudController`, etc.), los DTOs y el **`GlobalExceptionHandler`**, encargado de interceptar excepciones de negocio y transformarlas en respuestas HTTP estructuradas y consistentes para el cliente.
 
 ### Aislamiento y Contrato Externo (DTOs vs Entidades)
 Para cumplir los requerimientos de la asignatura, las entidades de dominio quedan estrictamente confinadas intramuros. Toda comunicación hacia o desde el exterior se realiza mediante objetos planos de transferencia de datos (**DTOs**). 
@@ -86,3 +86,4 @@ Todos los endpoints raíz operan bajo el prefijo universal `/api`. A continuaci�
 ```bash
 git clone [https://github.com/franciscorrego/mgcss-track-L2-Grupo3.git](https://github.com/franciscorrego/mgcss-track-L2-Grupo3.git)
 cd mgcss-track-L2-Grupo3/Proyecto_Mantenimiento
+```
