@@ -30,24 +30,3 @@ Un cambio de tipo MAJOR se realiza únicamente cuando se introducen modificacion
 
 ---
 
-## 2. Registro de Cambios (Changelog)
-
-A continuación, se detallan las mejoras técnicas y de gestión del cambio consolidadas en este incremento:
-
-### Automatización e Infraestructura (Continuous Delivery)
-
-* **Pipeline de Release:** Creación del archivo `.github/workflows/release.yml` para gestionar de forma desatendida la publicación de versiones basadas en etiquetas de Git.
-* **Calidad Garantizada (Quality Gate):** Integración obligatoria del paso de análisis estático en SonarCloud con la bandera `-Dsonar.qualitygate.wait=true`. El pipeline se cancelará automáticamente si el código cae en rojo.
-* **Empaquetado Automático:** Compilación automática de la aplicación Spring Boot y adjuntado del archivo ejecutable `.jar` como recurso (asset) descargable en la sección de Releases de GitHub.
-* **Dockerización Trazable:** Generación automática de la imagen Docker etiquetada dinámicamente con el nombre del tag para asegurar una trazabilidad total commit -> tag -> imagen.
-
-### Documentación de Casos de Uso y API (docs/use-cases.md)
-
-* **Sincronización de Contratos:** Ajuste de los 7 casos de uso principales para alinearse al 100% con los controladores reales de Spring Boot.
-* **Mapeo de Errores Semánticos:** Documentación de respuestas de error JSON que coinciden con los mensajes inyectados por el `GlobalExceptionHandler` (mensajes exactos de `IllegalArgumentException` y `IllegalStateException`).
-* **Estandarización HTTP:** Corrección del caso de uso de asignación de técnicos para operar bajo parámetros de consulta (Query Parameters) y devolución de códigos exitosos vacíos (204 No Content).
-
-### README.md Actualizado
-
-* Reorganización del catálogo de endpoints en tablas detalladas por responsabilidades (Clientes, Técnicos y Solicitudes).
-* Adición de enlaces rápidos correlativos para facilitar la lectura de los flujos por parte de los auditores externos.
