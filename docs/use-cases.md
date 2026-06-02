@@ -1,6 +1,6 @@
 # MGCSS - Especificación de Casos de Uso y Guía de Pruebas API
 
-Este documento contiene la especificación funcional y el catálogo de escenarios de prueba para validar el ciclo de vida completo del sistema. Todos los casos expuestos corresponden a los endpoints reales de la aplicación y pueden ejecutarse de forma interactiva a través de Swagger UI (/swagger-ui/index.html).
+Este documento contiene la especificación funcional y el catálogo de escenarios de prueba para validar el ciclo de vida completo del sistema. Todos los casos expuestos corresponden a los endpoints reales de la aplicación y están alineados con la lógica del `GlobalExceptionHandler` (404 para recursos no encontrados con formato JSON, 400 para violaciones de reglas de negocio e incorporando respuestas 204 No Content cuando corresponde).
 
 ---
 
@@ -28,10 +28,6 @@ POST /api/clientes
 }
 ```
 
-### Reglas de negocio
-- El email debe ser válido
-- El cliente se crea activo por defecto
-
 ---
 
 ## Caso 2 - Crear solicitud correctamente
@@ -56,16 +52,6 @@ POST /api/solicitudes
 }
 ```
 
-### Reglas de negocio
-- El cliente debe existir
-- Estado inicial siempre ABIERTA
-
-### Cómo probarlo en Swagger
-1. Crear cliente primero
-2. Usar su ID
-3. Ejecutar POST /api/solicitudes
-4. Ver 201
-
 ---
 
 ## Caso 3 - Crear solicitud con cliente inexistente
@@ -82,15 +68,12 @@ POST /api/solicitudes
 ```
 
 ### Response esperado
-`400 BAD REQUEST` o `404 NOT FOUND`
+`404 NOT FOUND`
 ```json
 {
-  "message": "El cliente no existe"
+  "message": "El cliente proporcionado no existe en el sistema"
 }
 ```
-
-### Reglas de negocio
-- No se puede crear solicitud sin cliente válido
 
 ---
 
@@ -98,24 +81,11 @@ POST /api/solicitudes
 
 ### Request
 ```http
-PUT /api/solicitudes/1/tecnico
-```
-```json
-1
+PUT /api/solicitudes/1/tecnico?tecnicoId=1
 ```
 
 ### Response esperado
-`200 OK`
-```json
-{
-  "id": 1,
-  "estado": "EN_PROCESO",
-  "tecnicoAsignado": "1"
-}
-```
-
-### Reglas de negocio
-- El técnico asignado debe estar activo previamente
+`204 NO CONTENT`
 
 ---
 
@@ -128,12 +98,11 @@ PUT /api/solicitudes/1/cerrar
 
 ### Response esperado
 `400 BAD REQUEST`
-```text
-IllegalStateException: No se puede cerrar si no está EN_PROCESO
+```json
+{
+  "message": "Intento de cierre ilegal desde un estado no permitido (ej. ABIERTA)"
+}
 ```
-
-### Reglas de negocio
-- Refuerza integridad del dominio
 
 ---
 
@@ -147,10 +116,6 @@ PUT /api/solicitudes/1/cerrar
 ### Response esperado
 `204 NO CONTENT`
 
-### Reglas de negocio
-- La solicitud debe estar en estado EN_PROCESO para poder cerrarse
-- Libera de forma automática la carga de trabajo asignada al técnico operario
-
 ---
 
 ## Caso 7 - Reabrir solicitud
@@ -162,7 +127,3 @@ PATCH /api/solicitudes/1/reabrir
 
 ### Response esperado
 `204 NO CONTENT`
-
-### Reglas de negocio
-- La solicitud debe encontrarse en estado CERRADA previamente
-- Al reabrirse de forma manual, vuelve de nuevo al estado EN_PROCESO
