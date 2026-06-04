@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  app:
+    image: mgcss-track:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mgcss-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=test
+    restart: unless-stopped
