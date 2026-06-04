@@ -97,7 +97,7 @@ Todos los endpoints raíz operan bajo el prefijo universal `/api`. A continuaci�
 Gracias a nuestro pipeline de Entrega Continua (Fase 6), la imagen oficial de la aplicación se empaqueta y publica automáticamente en Docker Hub. Para desplegar el sistema en cualquier máquina sin necesidad de descargar el código fuente ni instalar dependencias, ejecuta un único comando:
 
 ```bash
-docker run -d -p 8080:8080 --name mgcss-app franciscorrego/mgcss-track:v1.1.0
+docker run -d -p 8080:8080 --name mgcss-app franciscorrego/mgcss-track:v.1.1.2
 ```
 
 ### Opción 2: Entorno de Desarrollo (Local)
