@@ -26,7 +26,8 @@ jobs:
         working-directory: ./Proyecto_Mantenimiento
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn clean -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=JefeMestro67_mgcss-track-L2-Grupo3 -Dsonar.organization=JefeMestro67 -Dsonar.host.url=https://sonarcloud.io
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: mvn clean -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=JefeMestro67_mgcss-track-L2-Grupo3 -Dsonar.organization=JefeMestro67 -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=${{ secrets.SONAR_TOKEN }}
 
   release:
     name: Build & Release
@@ -61,9 +62,8 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Construir y publicar imagen Docker
-        working-directory: ./Proyecto_Mantenimiento
         run: |
-          docker build -t jefemestro67/mgcss-track:${{ github.ref_name }} -t jefemestro67/mgcss-track:latest .
+          docker build -t jefemestro67/mgcss-track:${{ github.ref_name }} -t jefemestro67/mgcss-track:latest -f Proyecto_Mantenimiento/Dockerfile Proyecto_Mantenimiento
           docker push jefemestro67/mgcss-track:${{ github.ref_name }}
           docker push jefemestro67/mgcss-track:latest
 
