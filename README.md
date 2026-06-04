@@ -93,21 +93,25 @@ Todos los endpoints raíz operan bajo el prefijo universal `/api`. A continuaci�
 
 ## Instalación y Ejecución
 
-### 1. Clonar y Acceder
+### Opción 1: Despliegue Rápido (Usuario Final / Producción)
+Gracias a nuestro pipeline de Entrega Continua (Fase 6), la imagen oficial de la aplicación se empaqueta y publica automáticamente en Docker Hub. Para desplegar el sistema en cualquier máquina sin necesidad de descargar el código fuente ni instalar dependencias, ejecuta un único comando:
 
-```bash
+docker run -d -p 8080:8080 --name mgcss-app franciscorrego/mgcss-track:v1.1.0
+
+### Opción 2: Entorno de Desarrollo (Local)
+Si deseas trabajar con el código fuente o realizar modificaciones en local:
+
+1. Clonar el repositorio y acceder a la carpeta:
+
 git clone [https://github.com/franciscorrego/mgcss-track-L2-Grupo3.git](https://github.com/franciscorrego/mgcss-track-L2-Grupo3.git)
 cd mgcss-track-L2-Grupo3/Proyecto_Mantenimiento
 
-### 2. Ejecución con Docker (Recomendado)
-Para levantar el sistema de forma aislada, puedes usar Docker Compose (opción automatizada) o los comandos tradicionales de Docker:
 
-**Opción A: Usando Docker Compose (Más rápido)**
+2. Levantar la infraestructura (Base de datos y API) con Docker Compose:
+
 docker-compose up -d --build
 
-
-**Opción B: Usando Docker tradicional**
-docker build -t mgcss-track:v1.1.0 .
-docker run -d -p 8080:8080 --name mgcss-app mgcss-track:v1.1.0
-
-*Una vez iniciado, la API estará disponible en http://localhost:8080/api y la documentación interactiva en http://localhost:8080/swagger-ui.html*
+---
+*Una vez iniciado el sistema (mediante cualquiera de las dos opciones), los servicios estarán disponibles en:*
+* **API REST:** http://localhost:8080/api
+* **Documentación Interactiva (Swagger):** http://localhost:8080/swagger-ui.html
