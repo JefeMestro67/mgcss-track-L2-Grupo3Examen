@@ -1,0 +1,706 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "OpenAPI definition",
+        "version": "v0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080",
+            "description": "Generated server url"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Clientes",
+            "description": "Controlador para el registro de clientes y la gestión de su estado en el sistema"
+        },
+        {
+            "name": "Técnicos",
+            "description": "Controlador para la gestión de operarios técnicos y su carga de trabajo"
+        },
+        {
+            "name": "Solicitudes",
+            "description": "Controlador unificado para la gestión segura del ciclo de vida de las solicitudes"
+        }
+    ],
+    "paths": {
+        "/api/tecnicos/{id}/desactivar": {
+            "put": {
+                "tags": [
+                    "Técnicos"
+                ],
+                "summary": "Desactivar un técnico",
+                "description": "Cambia el estado del técnico a inactivo. Un técnico desactivado no debería recibir nuevas asignaciones automáticas.",
+                "operationId": "desactivar",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID único del técnico a desactivar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 1
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Violación de regla de negocio: El técnico posee carga de trabajo pendiente"
+                    },
+                    "404": {
+                        "description": "El técnico con el ID proporcionado no existe"
+                    },
+                    "204": {
+                        "description": "Técnico desactivado con éxito"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor ante un fallo técnico imprevisto"
+                    }
+                }
+            }
+        },
+        "/api/solicitudes/{id}/tecnico": {
+            "put": {
+                "tags": [
+                    "Solicitudes"
+                ],
+                "summary": "Asignar un técnico",
+                "description": "Asigna un operario activo a la solicitud. Provoca que el estado de la solicitud transicione automáticamente a EN_PROCESO e incrementa la carga del operario.",
+                "operationId": "asignarTecnico",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la solicitud",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 1
+                    },
+                    {
+                        "name": "tecnicoId",
+                        "in": "query",
+                        "description": "ID del técnico que se hará cargo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 2
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Regla de negocio violada (ej. técnico inactivo o solicitud cerrada)"
+                    },
+                    "404": {
+                        "description": "La solicitud o el técnico indicados no existen"
+                    },
+                    "204": {
+                        "description": "Técnico asignado correctamente. Estado mutado a EN_PROCESO"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor ante un fallo técnico imprevisto"
+                    }
+                }
+            }
+        },
+        "/api/solicitudes/{id}/cerrar": {
+            "put": {
+                "tags": [
+                    "Solicitudes"
+                ],
+                "summary": "Cerrar una solicitud",
+                "description": "Cambia el estado de una solicitud a CERRADA, liberando la carga tanto del cliente como del técnico asignado. Requiere obligatoriamente que la solicitud esté EN_PROCESO.",
+                "operationId": "cerrar",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la solicitud que se desea cerrar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 1
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "Error interno del servidor ante un fallo técnico imprevisto"
+                    },
+                    "204": {
+                        "description": "Solicitud cerrada con éxito"
+                    },
+                    "400": {
+                        "description": "Intento de cierre ilegal desde un estado no permitido (ej. ABIERTA)"
+                    },
+                    "404": {
+                        "description": "La solicitud con el ID proporcionado no existe"
+                    }
+                }
+            }
+        },
+        "/api/clientes/{id}/desactivar": {
+            "put": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Desactivar un cliente",
+                "description": "Cambia el estado del cliente a inactivo, lo cual restringe ciertas operaciones comerciales dentro del sistema.",
+                "operationId": "desactivar_1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID único del cliente a dar de baja",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 1
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Cliente desactivado con éxito"
+                    },
+                    "404": {
+                        "description": "El cliente con el ID especificado no existe"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor ante un fallo técnico imprevisto"
+                    },
+                    "400": {
+                        "description": "Violación de regla de negocio: El cliente posee solicitudes abiertas en curso"
+                    }
+                }
+            }
+        },
+        "/api/tecnicos": {
+            "post": {
+                "tags": [
+                    "Técnicos"
+                ],
+                "summary": "Registrar un nuevo técnico",
+                "description": "Crea un operario técnico en el sistema.",
+                "operationId": "crear",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TecnicoRequestDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Técnico registrado con éxito",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TecnicoResponseDTO"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TecnicoResponseDTO"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Datos de entrada incorrectos o DTO inválido",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TecnicoResponseDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/solicitudes": {
+            "get": {
+                "tags": [
+                    "Solicitudes"
+                ],
+                "summary": "Listar todas las solicitudes",
+                "description": "Retorna una lista completa con el histórico de solicitudes registradas en la aplicación.",
+                "operationId": "listar",
+                "responses": {
+                    "200": {
+                        "description": "Listado obtenido correctamente",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/SolicitudResponseDTO"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor ante un fallo técnico imprevisto",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/SolicitudResponseDTO"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Solicitudes"
+                ],
+                "summary": "Crear una nueva solicitud",
+                "description": "Registra una solicitud de mantenimiento asociada a un cliente. Nace automáticamente en estado ABIERTA incrementando de forma segura los contadores internos del sistema.",
+                "operationId": "crear_1",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SolicitudRequestDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Solicitud creada con éxito de manera persistente",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SolicitudResponseDTO"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor ante un fallo técnico imprevisto",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SolicitudResponseDTO"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "El cliente proporcionado no existe en el sistema",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SolicitudResponseDTO"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Datos de entrada inválidos o cliente inactivo/con límite superado",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SolicitudResponseDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/clientes": {
+            "post": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Registrar un nuevo cliente",
+                "description": "Crea un cliente de manera persistentente en el sistema utilizando su nombre y dirección de correo electrónico.",
+                "operationId": "crear_2",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ClienteRequestDTO"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "400": {
+                        "description": "Datos de entrada incorrectos o formato de email inválido",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ClienteResponseDTO"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ClienteResponseDTO"
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "Cliente registrado con éxito",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ClienteResponseDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/solicitudes/{id}/reabrir": {
+            "patch": {
+                "tags": [
+                    "Solicitudes"
+                ],
+                "summary": "Reabrir una solicitud cerrada",
+                "description": "Permite la reapertura manual de una incidencia previamente CERRADA, devolviéndola limpiamente al estado EN_PROCESO si las cuotas del cliente lo permiten.",
+                "operationId": "reabrir",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la solicitud a reabrir",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 1
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Solicitud reabierta con éxito"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor ante un fallo técnico imprevisto"
+                    },
+                    "404": {
+                        "description": "La solicitud especificada no existe"
+                    },
+                    "400": {
+                        "description": "La solicitud no se encontraba en estado CERRADA o se violan los invariantes del cliente"
+                    }
+                }
+            }
+        },
+        "/api/solicitudes/{id}": {
+            "get": {
+                "tags": [
+                    "Solicitudes"
+                ],
+                "summary": "Consultar solicitud por ID",
+                "description": "Recupera los detalles completos de una solicitud específica a partir de su identificador único.",
+                "operationId": "consultar",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID único de la solicitud a consultar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 1
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "Error interno del servidor ante un fallo técnico imprevisto",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SolicitudResponseDTO"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Solicitud encontrada y devuelta con éxito",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SolicitudResponseDTO"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "La solicitud con el ID proporcionado no existe en el sistema",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SolicitudResponseDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "TecnicoRequestDTO": {
+                "required": [
+                    "especialidad",
+                    "nombre"
+                ],
+                "type": "object",
+                "properties": {
+                    "nombre": {
+                        "type": "string",
+                        "description": "Nombre completo del técnico",
+                        "example": "Carlos Gomez"
+                    },
+                    "especialidad": {
+                        "type": "string",
+                        "description": "Área de especialización técnica del operario",
+                        "example": "Sistemas de Redes"
+                    }
+                },
+                "description": "Datos requeridos para registrar un nuevo operario técnico en el sistema"
+            },
+            "TecnicoResponseDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "nombre": {
+                        "type": "string"
+                    },
+                    "activo": {
+                        "type": "boolean"
+                    },
+                    "especialidad": {
+                        "type": "string",
+                        "description": "Área de especialización técnica del operario",
+                        "example": "Sistemas de Redes"
+                    },
+                    "cargaTrabajo": {
+                        "type": "integer",
+                        "description": "Número de incidencias o tareas activas asignadas actualmente al técnico",
+                        "format": "int32",
+                        "example": 2
+                    }
+                },
+                "description": "Información detallada del operario técnico devuelta por el sistema"
+            },
+            "SolicitudRequestDTO": {
+                "required": [
+                    "clienteId",
+                    "descripcion"
+                ],
+                "type": "object",
+                "properties": {
+                    "clienteId": {
+                        "type": "integer",
+                        "description": "ID del cliente que genera la solicitud",
+                        "format": "int64",
+                        "example": 1
+                    },
+                    "descripcion": {
+                        "type": "string",
+                        "description": "Descripción detallada del problema o incidencia",
+                        "example": "El servidor de base de datos no responde"
+                    }
+                },
+                "description": "Modelo para la creación de una nueva solicitud"
+            },
+            "EstadoChangeDTO": {
+                "type": "object",
+                "properties": {
+                    "estadoAnterior": {
+                        "type": "string",
+                        "description": "Estado en el que se encontraba la solicitud antes de la modificación",
+                        "enum": [
+                            "ABIERTA",
+                            "EN_PROCESO",
+                            "CERRADA"
+                        ]
+                    },
+                    "estadoNuevo": {
+                        "type": "string",
+                        "description": "Nuevo estado asignado a la solicitud tras completarse la operación",
+                        "enum": [
+                            "ABIERTA",
+                            "EN_PROCESO",
+                            "CERRADA"
+                        ]
+                    },
+                    "fechaCambio": {
+                        "type": "string",
+                        "description": "Fecha y hora exacta en la que se procesó el cambio de estado",
+                        "format": "date-time"
+                    }
+                },
+                "description": "Registro detallado de un cambio de estado en el ciclo de vida de la solicitud"
+            },
+            "SolicitudResponseDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Identificador único de la solicitud generado por la base de datos",
+                        "format": "int64",
+                        "example": 1
+                    },
+                    "clienteId": {
+                        "type": "integer",
+                        "description": "ID del cliente asociado a la solicitud",
+                        "format": "int64",
+                        "example": 1
+                    },
+                    "clienteNombre": {
+                        "type": "string",
+                        "description": "Nombre completo del cliente",
+                        "example": "Juan Perez"
+                    },
+                    "descripcion": {
+                        "type": "string",
+                        "description": "Texto explicativo con el detalle del problema técnico",
+                        "example": "El servidor de base de datos no responde"
+                    },
+                    "fechaCreacion": {
+                        "type": "string",
+                        "description": "Fecha y hora exacta en la que se registró la incidencia",
+                        "format": "date-time"
+                    },
+                    "estado": {
+                        "type": "string",
+                        "description": "Estado actual del ciclo de vida de la solicitud",
+                        "enum": [
+                            "ABIERTA",
+                            "EN_PROCESO",
+                            "CERRADA"
+                        ]
+                    },
+                    "tecnicoId": {
+                        "type": "integer",
+                        "description": "ID del técnico asignado para resolver la incidencia",
+                        "format": "int64",
+                        "example": 2
+                    },
+                    "tecnicoNombre": {
+                        "type": "string",
+                        "description": "Nombre completo del técnico asignado",
+                        "example": "Carlos Gomez"
+                    },
+                    "fechaCierre": {
+                        "type": "string",
+                        "description": "Fecha y hora en la que se cerró la solicitud si procede",
+                        "format": "date-time"
+                    },
+                    "historial": {
+                        "type": "array",
+                        "description": "Historial completo con todas las transiciones de estado sufridas por la solicitud",
+                        "items": {
+                            "$ref": "#/components/schemas/EstadoChangeDTO"
+                        }
+                    },
+                    "mainDescripcion": {
+                        "type": "string"
+                    }
+                },
+                "description": "Información detallada de la solicitud devuelta por el sistema"
+            },
+            "ClienteRequestDTO": {
+                "required": [
+                    "email",
+                    "nombre"
+                ],
+                "type": "object",
+                "properties": {
+                    "nombre": {
+                        "type": "string",
+                        "description": "Nombre completo del cliente",
+                        "example": "Juan Perez"
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "Dirección de correo electrónico de contacto",
+                        "example": "juan.perez@mgcss.com"
+                    }
+                },
+                "description": "Datos requeridos para registrar un nuevo cliente en el sistema"
+            },
+            "ClienteResponseDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "nombre": {
+                        "type": "string"
+                    },
+                    "activo": {
+                        "type": "boolean"
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "Dirección de correo electrónico del cliente",
+                        "example": "juan.perez@mgcss.com"
+                    },
+                    "tipoCliente": {
+                        "type": "string",
+                        "description": "Tipo o categoría de prioridad asignada al cliente dentro del dominio",
+                        "enum": [
+                            "STANDARD",
+                            "PREMIUM"
+                        ]
+                    },
+                    "solicitudesAbiertas": {
+                        "type": "integer",
+                        "description": "Número total de solicitudes que el cliente mantiene abiertas simultáneamente",
+                        "format": "int32",
+                        "example": 1
+                    }
+                },
+                "description": "Información detallada del cliente devuelta por el sistema"
+            }
+        }
+    }
+}
