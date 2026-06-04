@@ -34,7 +34,8 @@ public class SolicitudController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Solicitud creada con éxito de manera persistente"),
         @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o cliente inactivo/con límite superado"),
-        @ApiResponse(responseCode = "404", description = "El cliente proporcionado no existe en el sistema")
+        @ApiResponse(responseCode = "404", description = "El cliente proporcionado no existe en el sistema"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor ante un fallo técnico imprevisto")
     })
     public ResponseEntity<SolicitudResponseDTO> crear(@Valid @RequestBody SolicitudRequestDTO request) { // Arquitectura: @Valid integrado
         Solicitud nueva = solicitudService.crearSolicitud(request.getClienteId(), request.getDescripcion());
@@ -45,7 +46,8 @@ public class SolicitudController {
     @Operation(summary = "Consultar solicitud por ID", description = "Recupera los detalles completos de una solicitud específica a partir de su identificador único.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Solicitud encontrada y devuelta con éxito"),
-        @ApiResponse(responseCode = "404", description = "La solicitud con el ID proporcionado no existe en el sistema")
+        @ApiResponse(responseCode = "404", description = "La solicitud con el ID proporcionado no existe en el sistema"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor ante un fallo técnico imprevisto")
     })
     public ResponseEntity<SolicitudResponseDTO> consultar(
             @Parameter(description = "ID único de la solicitud a consultar", example = "1") @PathVariable Long id) {
@@ -58,7 +60,8 @@ public class SolicitudController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Técnico asignado correctamente. Estado mutado a EN_PROCESO"),
         @ApiResponse(responseCode = "400", description = "Regla de negocio violada (ej. técnico inactivo o solicitud cerrada)"),
-        @ApiResponse(responseCode = "404", description = "La solicitud o el técnico indicados no existen")
+        @ApiResponse(responseCode = "404", description = "La solicitud o el técnico indicados no existen"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor ante un fallo técnico imprevisto")
     })
     public ResponseEntity<Void> asignarTecnico(
             @Parameter(description = "ID de la solicitud", example = "1") @PathVariable Long id, 
@@ -72,7 +75,8 @@ public class SolicitudController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Solicitud cerrada con éxito"),
         @ApiResponse(responseCode = "400", description = "Intento de cierre ilegal desde un estado no permitido (ej. ABIERTA)"),
-        @ApiResponse(responseCode = "404", description = "La solicitud con el ID proporcionado no existe")
+        @ApiResponse(responseCode = "404", description = "La solicitud con el ID proporcionado no existe"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor ante un fallo técnico imprevisto")
     })
     public ResponseEntity<Void> cerrar(
             @Parameter(description = "ID de la solicitud que se desea cerrar", example = "1") @PathVariable Long id) {
@@ -85,7 +89,8 @@ public class SolicitudController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Solicitud reabierta con éxito"),
         @ApiResponse(responseCode = "400", description = "La solicitud no se encontraba en estado CERRADA o se violan los invariantes del cliente"),
-        @ApiResponse(responseCode = "404", description = "La solicitud especificada no existe")
+        @ApiResponse(responseCode = "404", description = "La solicitud especificada no existe"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor ante un fallo técnico imprevisto")
     })
     public ResponseEntity<Void> reabrir(
             @Parameter(description = "ID de la solicitud a reabrir", example = "1") @PathVariable Long id) {
@@ -95,7 +100,10 @@ public class SolicitudController {
 
     @GetMapping
     @Operation(summary = "Listar todas las solicitudes", description = "Retorna una lista completa con el histórico de solicitudes registradas en la aplicación.")
-    @ApiResponse(responseCode = "200", description = "Listado obtenido correctamente")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Listado obtenido correctamente"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor ante un fallo técnico imprevisto")
+    })
     public ResponseEntity<List<SolicitudResponseDTO>> listar() {
         List<SolicitudResponseDTO> lista = solicitudService.listarTodas().stream()
                 .map(SolicitudApiMapper::toResponseDTO)

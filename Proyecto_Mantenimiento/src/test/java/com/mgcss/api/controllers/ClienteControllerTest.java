@@ -53,10 +53,51 @@ class ClienteControllerTest {
     }
 
     @Test
+    void cuandoCrearClienteConCamposInvalidos_entoncesDevuelveBadRequestPorValidacion() throws Exception {
+        // Arrange: Enviamos un DTO con nombre vacío y un email mal formado
+        ClienteRequestDTO requestInvalido = new ClienteRequestDTO("", "correo-incorrecto");
+
+        // Act & Assert: Spring Framework interceptará la validación errónea antes de llegar al servicio
+        mockMvc.perform(post("/api/clientes")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestInvalido)))
+                .andExpect(status().isBadRequest()) 
+                // Verificamos que el mapa JSON del GlobalExceptionHandler contenga las claves de los campos que fallaron
+                .andExpect(jsonPath("$.nombre").exists())
+                .andExpect(jsonPath("$.email").exists());
+    }
+
+    @Test
     void cuandoDesactivarCliente_entoncesDevuelveNoContent() throws Exception {
         Mockito.doNothing().when(clienteService).desactivarCliente(1L);
 
         mockMvc.perform(put("/api/clientes/1/desactivar"))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void cuandoDesactivarClienteInexistente_entoncesDevuelveNotFound() throws Exception {
+        // Arrange: Simulamos que el servicio lanza IllegalArgumentException si el cliente no existe
+        Mockito.doThrow(new IllegalArgumentException("El cliente no existe"))
+               .when(clienteService).desactivarCliente(99L);
+
+        // Act & Assert: Validamos que el GlobalExceptionHandler responda con un 404
+        mockMvc.perform(put("/api/clientes/99/desactivar")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("El cliente no existe"));
+    }
+
+    @Test
+    void cuandoDesactivarClienteConSolicitudesAbiertas_entoncesDevuelveBadRequest() throws Exception {
+        // Arrange: Simulamos la violación de la regla de negocio del dominio (IllegalStateException)
+        Mockito.doThrow(new IllegalStateException("No se puede desactivar un cliente con solicitudes abiertas"))
+               .when(clienteService).desactivarCliente(1L);
+
+        // Act & Assert: Validamos que transicione a un HTTP 400 Bad Request limpio gracias al handler
+        mockMvc.perform(put("/api/clientes/1/desactivar")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("No se puede desactivar un cliente con solicitudes abiertas"));
     }
 }
