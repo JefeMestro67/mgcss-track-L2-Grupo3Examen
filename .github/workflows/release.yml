@@ -27,12 +27,14 @@ jobs:
           cache: maven
 
       - name: Verify Code and Run SonarCloud Quality Gate
+        working-directory: ./Proyecto_Mantenimiento
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn clean verify sonar:sonar -Dsonar.projectKey=franciscorrego_mgcss-track-L2-Grupo3 -Dsonar.organization=franciscorrego -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=${{ secrets.SONAR_TOKEN }} -Dsonar.qualitygate.wait=true
 
       - name: Package Application
+        working-directory: ./Proyecto_Mantenimiento
         run: mvn package -DskipTests
 
       - name: Log in to Docker Hub
@@ -42,6 +44,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and Push Docker Image
+        working-directory: ./Proyecto_Mantenimiento
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/mgcss-track:${{ github.ref_name }} .
           docker push ${{ secrets.DOCKER_USERNAME }}/mgcss-track:${{ github.ref_name }}
@@ -50,7 +53,7 @@ jobs:
       - name: Publish Automated GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: target/*.jar
+          files: Proyecto_Mantenimiento/target/*.jar
           body_path: docs/release-notes.md
           draft: false
           prerelease: false
