@@ -10,6 +10,11 @@ El proyecto **MGCSS** (Desarrollado por el equipo **mgcss-track-L2-Grupo3**) es 
 
 ---
 
+##  Quick Start (TL;DR)
+¿Tienes Docker instalado? Despliega el sistema inmediatamente:
+```bash
+docker run -d -p 8080:8080 franciscorrego/mgcss-track:v.1.1.2
+
 ## Panel de Control y Enlaces del Proyecto
 
 Haz clic en los siguientes accesos directos para abrir las plataformas de automatización externas o navegar por la documentación funcional detallada:
